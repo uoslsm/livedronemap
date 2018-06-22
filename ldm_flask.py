@@ -1,27 +1,50 @@
 from flask import Flask, request
-import json, time
+from werkzeug.utils import secure_filename
+import os
+
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = set(['jpg', 'txt'])
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
-@app.route('/ldm_upload_data', methods=['POST'])
-def ldm_upload_data():
+def allowed_file(fname):
+    return '.' in fname and fname.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/ldm_upload/', methods=['POST'])
+def ldm_upload():
     if request.method == 'POST':
-        data = request.get_json()
-        data = json.loads(data) #Decode JSON: JSON->Dictionary
-        result = {'status': 'OK', 'result': data['x_w'] + data['y_w']}
-        time.sleep(10)
+        # 클라이언트로부터 이미지와 EO 파일을 전송받는다.
+        fname_dict = {
+            'img': None,
+            'eo': None
+        }
+        for key in list(fname_dict.keys()):
+            if key not in request.files:
+                return 'No %s part' % key
+            file = request.files[key]
+            if file.filename == '':
+                return 'No selected file'
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                fname_dict[key] = filename
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-        '''
-        f_img = 이미지 파일
-        f_txt = 텍스트 파일
-        텍스트 파일 파싱
-        원하는 변수만 추출
-        시스템 칼리브레이션 R 곱하기
-        기하보정 프로그램에 조정된 EO와 이미지 파일, 기타 파라미터를 넣고 실행시키기 
-        '''
+        # 전송받은 EO 파일을 이용하여 시스템 칼리브레이션을 수행한다.
+        from apx_file_reader import read_eo_file
+        calibrated_eo = read_eo_file(fname_dict['eo'])
 
-        return json.dumps(result)
+        print(calibrated_eo)
+
+        return str(calibrated_eo['lat'])
+
+
+
+@app.route('/odm_upload', methods=['POST'])
+def odm_upload():
+    return 0
 
 
 @app.route('/')
