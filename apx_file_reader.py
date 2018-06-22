@@ -16,8 +16,8 @@ def read_eo_file(fname):
     data1 = parse_sensor_data(data[0])
     data2 = parse_sensor_data(data[2])
 
-    lat = (data1[0] + data2[0]) / 2
-    lon = (data1[1] + data2[1]) / 2
+    lat = (data1[0] + data2[0]) / 2 / 100
+    lon = (data1[1] + data2[1]) / 2 / 100
     alt = (data1[2] + data2[2]) / 2
     roll = (data1[3] + data2[3]) / 2
     pitch = (data1[4] + data2[4]) / 2
