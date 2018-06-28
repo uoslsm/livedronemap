@@ -27,7 +27,6 @@ def project():
         else:
             new_project_dir = os.path.join(app.config['UPLOAD_FOLDER'], new_project_name)
             os.mkdir(new_project_dir)
-            os.mkdir(os.path.join(new_project_dir, 'raw'))
             os.mkdir(os.path.join(new_project_dir, 'rectified'))
             return 'Project folder %s created' % new_project_name
 
@@ -36,12 +35,13 @@ def project():
 @app.route('/ldm_upload/<project_name>', methods=['POST'])
 def ldm_upload(project_name):
     project_folder = os.path.join(app.config['UPLOAD_FOLDER'], project_name)
-    project_raw_folder = os.path.join(project_folder, 'raw')
 
     if request.method == 'POST':
         # 클라이언트로부터 이미지와 EO 파일을 전송받는다.
-        fname_dict = {'img': None, 'eo': None}
-        for key in list(fname_dict.keys()):
+        fname_dict = {'img': None, 'eo': None, 'calibrated_eo': None}
+
+        # 전송된 파일의 무결성을 확인하고 EO 파일에 대해 시스템 칼리브레이션을 수행한다.
+        for key in ['img', 'eo']:
             # 전송받은 파일의 상태 확인: 이미지나 EO 중 하나의 키가 빠진 경우
             if key not in request.files:
                 return 'No %s part' % key
@@ -54,27 +54,29 @@ def ldm_upload(project_name):
                 # 클라이언트로부터 전송받은 파일을 저장한다.
                 filename = secure_filename(file.filename)
                 fname_dict[key] = filename
-                file.save(os.path.join(project_raw_folder, filename))
-
+                file.save(os.path.join(project_folder, filename))
                 if key == 'eo':
                     # 전송받은 파일이 EO인 경우 시스템 칼리브레이션을 수행한다.
                     from apx_file_reader import read_eo_file
                     calibrated_eo = read_eo_file(fname_dict['eo'])
+                    fname_dict['calibrated_eo'] = fname_dict['eo'].split('.')[0] + '_calibrated.txt'
+                    with open(os.path.join(project_folder, fname_dict['calibrated_eo']), 'w') as f:
+                        f.write('%f\t%f\t%f\t%f\t%f\t%f' % (calibrated_eo['lat'], calibrated_eo['lon'], calibrated_eo['alt'], calibrated_eo['omega'], calibrated_eo['phi'], calibrated_eo['kappa']))
 
-                    # TODO: 전송받은 이미지와 조정한 EO를 기하보정한다.
-                    '''
-                    rectify(input_file_path_tmp="D:\\python-workspace\\livedronemap\\orthophoto\\workspace\\",
-                                  output_file_path_tmp="D:\\python-workspace\\livedronemap\\orthophoto\\workspace\\result\\",
-                                  eo_name_tmp="2017-04-10_125832.txt",
-                                  image_name_tmp="2017-04-10_125832.jpg",
-                                  pixel_size=0.000006,
-                                  focal_length=0.035,
-                                  gsd=0.10,
-                                  ground_height=23)
-                    '''
-                    # TODO: 기하보정한 이미지를 가시화 모듈에 전달한다.
+        # 전송받은 이미지와 조정한 EO를 기하보정한다.
+        if fname_dict != {'img': None, 'eo': None, 'calibrated_eo': None}:
+            rectify(input_dir="D:\\python-workspace\\livedronemap\\project\\%s\\" % project_name,
+                    output_dir="D:\\python-workspace\\livedronemap\\project\\%s\\rectified\\" % project_name,
+                    eo_fname=fname_dict['eo'],
+                    img_fname=fname_dict['img'],
+                    pixel_size=0.000006,
+                    focal_length=0.035,
+                    gsd=0.10,
+                    ground_height=23)
 
-                    return str(calibrated_eo['lat'])
+        # TODO: 기하보정한 이미지를 가시화 모듈에 전달한다.
+
+        return 'LDM'
 
 
 # 오픈드론맵: 항공삼각측량
