@@ -1,7 +1,7 @@
 from flask import Flask, request
 from werkzeug.utils import secure_filename
 import os, json
-from orthophoto.orthophoto import ortho_rectify
+from utils.orthophoto import rectify
 
 UPLOAD_FOLDER = 'project'
 ALLOWED_EXTENSIONS = set(['jpg', 'txt'])
@@ -63,7 +63,7 @@ def ldm_upload(project_name):
 
                     # TODO: 전송받은 이미지와 조정한 EO를 기하보정한다.
                     '''
-                    ortho_rectify(input_file_path_tmp="D:\\python-workspace\\livedronemap\\orthophoto\\workspace\\",
+                    rectify(input_file_path_tmp="D:\\python-workspace\\livedronemap\\orthophoto\\workspace\\",
                                   output_file_path_tmp="D:\\python-workspace\\livedronemap\\orthophoto\\workspace\\result\\",
                                   eo_name_tmp="2017-04-10_125832.txt",
                                   image_name_tmp="2017-04-10_125832.jpg",
