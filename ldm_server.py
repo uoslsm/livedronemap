@@ -1,6 +1,7 @@
 from flask import Flask, request
 from werkzeug.utils import secure_filename
 import os, json
+from orthophoto.orthophoto import ortho_rectify
 
 UPLOAD_FOLDER = 'project'
 ALLOWED_EXTENSIONS = set(['jpg', 'txt'])
@@ -50,24 +51,37 @@ def ldm_upload(project_name):
                 return 'No selected file'
             # 전송받은 파일의 상태 확인: 키와 값이 모두 정상이고 허용된 확장자일 경우
             if file and allowed_file(file.filename):
-                # 클라이언트로부터 전송받은 이미지와 초기 EO 파일을 저장한다.
+                # 클라이언트로부터 전송받은 파일을 저장한다.
                 filename = secure_filename(file.filename)
                 fname_dict[key] = filename
                 file.save(os.path.join(project_raw_folder, filename))
 
                 if key == 'eo':
-                    # 전송받은 EO 파일을 이용하여 시스템 칼리브레이션을 수행한다.
+                    # 전송받은 파일이 EO인 경우 시스템 칼리브레이션을 수행한다.
                     from apx_file_reader import read_eo_file
                     calibrated_eo = read_eo_file(fname_dict['eo'])
-                    # 전송받은 이미지와 조정한 EO를 기하보정한다.
-                    # 기하보정한 이미지를 가시화 모듈에 전달한다.
+
+                    # TODO: 전송받은 이미지와 조정한 EO를 기하보정한다.
+                    '''
+                    ortho_rectify(input_file_path_tmp="D:\\python-workspace\\livedronemap\\orthophoto\\workspace\\",
+                                  output_file_path_tmp="D:\\python-workspace\\livedronemap\\orthophoto\\workspace\\result\\",
+                                  eo_name_tmp="2017-04-10_125832.txt",
+                                  image_name_tmp="2017-04-10_125832.jpg",
+                                  pixel_size=0.000006,
+                                  focal_length=0.035,
+                                  gsd=0.10,
+                                  ground_height=23)
+                    '''
+                    # TODO: 기하보정한 이미지를 가시화 모듈에 전달한다.
+
                     return str(calibrated_eo['lat'])
 
 
 # 오픈드론맵: 항공삼각측량
 @app.route('/odm_upload/<project_name>', methods=['POST'])
 def odm_upload(project_name):
-    return 0
+    # TODO: WebODM에 데이터셋을 업로드한다.
+    return 'ODM'
 
 
 if __name__ == '__main__':
