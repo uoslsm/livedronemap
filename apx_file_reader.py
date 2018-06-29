@@ -39,7 +39,7 @@ def read_eo_file(fname):
     f.close()
     return calibrated_eo
 
-# Test
+
 if __name__ == '__main__':
     calibrated_eo = read_eo_file('2018-06-19_172040_insp.txt')
     print(calibrated_eo)
