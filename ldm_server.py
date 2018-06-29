@@ -5,6 +5,7 @@ from utils.orthophoto import rectify
 
 UPLOAD_FOLDER = 'project'
 ALLOWED_EXTENSIONS = set(['jpg', 'txt'])
+CALIBRATION = False
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -56,18 +57,23 @@ def ldm_upload(project_name):
                 fname_dict[key] = filename
                 file.save(os.path.join(project_folder, filename))
                 if key == 'eo':
-                    # 전송받은 파일이 EO인 경우 시스템 칼리브레이션을 수행한다.
-                    from apx_file_reader import read_eo_file
-                    calibrated_eo = read_eo_file(fname_dict['eo'])
-                    fname_dict['calibrated_eo'] = fname_dict['eo'].split('.')[0] + '_calibrated.txt'
-                    with open(os.path.join(project_folder, fname_dict['calibrated_eo']), 'w') as f:
-                        f.write('%f\t%f\t%f\t%f\t%f\t%f' % (calibrated_eo['lat'], calibrated_eo['lon'], calibrated_eo['alt'], calibrated_eo['omega'], calibrated_eo['phi'], calibrated_eo['kappa']))
+                    # 전송받은 파일이 EO인 경우, 그리고 칼리브레이션 모드가 켜진 경우 시스템 칼리브레이션을 수행한다.
+                    if CALIBRATION:
+                        from apx_file_reader import read_eo_file
+                        calibrated_eo = read_eo_file(fname_dict['eo'])
+                        fname_dict['calibrated_eo'] = fname_dict['eo'].split('.')[0] + '_calibrated.txt'
+                        with open(os.path.join(project_folder, fname_dict['calibrated_eo']), 'w') as f:
+                            f.write('%f\t%f\t%f\t%f\t%f\t%f' % (calibrated_eo['lat'], calibrated_eo['lon'], calibrated_eo['alt'], calibrated_eo['omega'], calibrated_eo['phi'], calibrated_eo['kappa']))
 
         # 전송받은 이미지와 조정한 EO를 기하보정한다.
         if fname_dict != {'img': None, 'eo': None, 'calibrated_eo': None}:
+            if CALIBRATION:
+                eo_key = 'calibrated_eo'
+            else:
+                eo_key = 'eo'
             rectify(input_dir="D:\\python-workspace\\livedronemap\\project\\%s\\" % project_name,
                     output_dir="D:\\python-workspace\\livedronemap\\project\\%s\\rectified\\" % project_name,
-                    eo_fname=fname_dict['eo'],
+                    eo_fname=fname_dict[eo_key],
                     img_fname=fname_dict['img'],
                     pixel_size=0.000006,
                     focal_length=0.035,

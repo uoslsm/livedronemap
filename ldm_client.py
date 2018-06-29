@@ -1,5 +1,6 @@
 import requests
 
+
 class livedronemap:
     def __init__(self, url):
         self.url = url
@@ -25,13 +26,17 @@ class livedronemap:
             print('Project %s does not exist' % project_name)
 
     def ldm_upload(self, img_fname, eo_fname):
+        # TODO: 파일 없을 때 예외처리
         if self.current_project is not None:
-            files = {
-                'img': open(img_fname, 'rb'),
-                'eo': open(eo_fname, 'rb')
-            }
-            r = requests.post(self.url + 'ldm_upload/' + self.current_project, files=files)
-            return r
+            try:
+                files = {
+                    'img': open(img_fname, 'rb'),
+                    'eo': open(eo_fname, 'rb')
+                }
+                r = requests.post(self.url + 'ldm_upload/' + self.current_project, files=files)
+                return r
+            except Exception as e:
+                return e
 
 
 if __name__ == '__main__':
