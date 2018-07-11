@@ -26,7 +26,6 @@ class livedronemap:
             print('Project %s does not exist' % project_name)
 
     def ldm_upload(self, img_fname, eo_fname):
-        # TODO: 파일 없을 때 예외처리
         if self.current_project is not None:
             try:
                 files = {

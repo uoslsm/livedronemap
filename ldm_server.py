@@ -4,7 +4,7 @@ import os, json
 from utils.orthophoto import rectify
 
 UPLOAD_FOLDER = 'project'
-ALLOWED_EXTENSIONS = set(['jpg', 'txt'])
+ALLOWED_EXTENSIONS = set(['JPG', 'jpg', 'txt'])
 CALIBRATION = False
 
 app = Flask(__name__)
@@ -75,10 +75,10 @@ def ldm_upload(project_name):
                     output_dir="D:\\python-workspace\\livedronemap\\project\\%s\\rectified\\" % project_name,
                     eo_fname=fname_dict[eo_key],
                     img_fname=fname_dict['img'],
-                    pixel_size=0.000006,
-                    focal_length=0.035,
+                    pixel_size=0.00000156192,
+                    focal_length=0.00361,
                     gsd=0.10,
-                    ground_height=23)
+                    ground_height=355)
 
         # TODO: 기하보정한 이미지를 가시화 모듈에 전달한다.
 
