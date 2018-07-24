@@ -77,7 +77,7 @@ def ldm_upload(project_name):
                     img_fname=fname_dict['img'],
                     pixel_size=0.00000156192,
                     focal_length=0.00361,
-                    gsd=0.10,
+                    gsd=0.25,
                     ground_height=355)
 
         # TODO: 기하보정한 이미지를 가시화 모듈에 전달한다.
