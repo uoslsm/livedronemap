@@ -5,8 +5,8 @@ img_fname_list = glob.glob('example/*.JPG')
 
 # ldm = livedronemap('http://222.122.118.28:8001/')
 ldm = livedronemap('http://127.0.0.1:5000/')
-ldm.create_project('un_livedronemap_1')
-ldm.set_current_project('un_livedronemap_1')
+ldm.create_project('un_livedronemap')
+ldm.set_current_project('un_livedronemap')
 
 for img_fname in img_fname_list:
     eo_fname = img_fname.split('.')[0] + '.txt'

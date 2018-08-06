@@ -1,0 +1,50 @@
+{
+  "project_name": "un_livedronemap_project",
+  "rectified_image": {
+    "file": "---file object---",
+    "fname": "DJI_1234.tif"
+  },
+  "detected_objects": {
+    "num_of_objects": 4,
+    "0": {
+      "id": "1001",
+      "geometry": "POINT (30 10)",
+      "attribute": {
+        "type": "Ship",
+        "length": 30,
+        "orientation": 260,
+        "speed": 12
+      }
+    },
+    "1": {
+      "id": "1002",
+      "geometry": "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))",
+      "attribute": {
+        "type": "Oil Spill",
+        "shape_area": 234
+      }
+    },
+    "2": {
+      "id": "1003",
+      "geometry": "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))",
+      "attribute": {
+        "type": "Red Tide",
+        "shape_area": 123
+      }
+    },
+    "3": {
+      "id": "1004",
+      "geometry": "GEOTIFF",
+      "file": "---file object---",
+      "fname": "DJI_1234_density.tif"
+    }
+  },
+  "uav_location": {
+    "latitude": 37.22516,
+    "longitude": 128.2151,
+    "altitude": 100,
+    "roll": 2.123,
+    "pitch": 0.23,
+    "yaw": 1.2323
+  }
+}

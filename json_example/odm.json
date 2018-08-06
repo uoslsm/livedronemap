@@ -1,0 +1,21 @@
+{
+  "project_name": "un_livedronemap_project",
+  "odm_results": {
+    "orthophoto": {
+      "file": "---file object---",
+      "fname": "orthophoto.tif"
+    },
+    "surface_model": {
+      "file": "---file object---",
+      "fname": "dsm.tif"
+    },
+    "point_cloud": {
+      "file": "---file object---",
+      "fname": "georeferenced_model.las"
+    },
+    "textured_model": {
+      "file": "---file object---",
+      "fname": "textured_model.zip"
+    }
+  }
+}
