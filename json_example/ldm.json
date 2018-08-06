@@ -1,5 +1,6 @@
 {
   "project_name": "un_livedronemap_project",
+  "status": 0,
   "rectified_image": {
     "file": "---file object---",
     "fname": "DJI_1234.tif"
