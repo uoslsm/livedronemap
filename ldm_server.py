@@ -1,12 +1,14 @@
 from flask import Flask, request
 from werkzeug.utils import secure_filename
-import os, json
+import os
+import json
 from utils.orthophoto import rectify
 
 UPLOAD_FOLDER = 'project'
 ALLOWED_EXTENSIONS = set(['JPG', 'jpg', 'txt'])
 CALIBRATION = False
 
+# 플라스크 초기화
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -93,4 +95,5 @@ def odm_upload(project_name):
 
 
 if __name__ == '__main__':
-    app.run()
+    # app.run()
+    socket_io.run(app)
