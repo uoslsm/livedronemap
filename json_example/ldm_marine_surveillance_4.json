@@ -1,0 +1,34 @@
+{
+  "project_name": "marine_surveillance_project",
+  "status": 0,
+  "rectified_image": {
+    "file": "---file object---",
+    "fname": "marine_surveillance_4.tif"
+  },
+  "detected_objects": {
+    "num_of_objects": 1,
+    "0": {
+      "id": "1002",
+      "geometry": "POINT (128.384959098305 34.770929934764)",
+      "attribute": {
+        "type": "Ship",
+        "detected_time": 1514764815,
+        "bounding_box_geometry": "POLYGON ((128.384887310351 34.770899073058,128.384979535912 34.771006134904,128.385026851634 34.7709780662553,128.384929814305 34.7708681975444,128.384887310351 34.770899073058))",
+        "major_axis": 30,
+        "minor_axis": 50,
+        "orientation": 260,
+        "bounding_box_area": 150,
+        "length": 30,
+        "speed": 12
+      }
+    }
+  },
+  "uav_location": {
+    "latitude": 37.22516,
+    "longitude": 128.2151,
+    "altitude": 100,
+    "roll": 2.123,
+    "pitch": 0.23,
+    "yaw": 1.2323
+  }
+}

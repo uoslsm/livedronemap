@@ -12,24 +12,17 @@
       "geometry": "POINT (30 10)",
       "attribute": {
         "type": "Ship",
-        "length": 30,
+        "detected_time": 123123,
+        "bounding_box_geometry": "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"
+        "major_axis": 30,
+        "minor_axis": 50,
         "orientation": 260,
+        "bounding_box_area": 150,
+        "length": 30,
         "speed": 12
       }
     },
     "1": {
-      "id": "1001",
-      "geometry": "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))",
-      "attribute": {
-        "type": "Ship with bounding box",
-        "major_axis": 30,
-        "minor_axis": 50,
-        "orientation": 260,
-        "object_area": 150,
-        "speed": 12
-      }
-    },
-    "2": {
       "id": "1002",
       "geometry": "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))",
       "attribute": {
@@ -37,7 +30,7 @@
         "shape_area": 234
       }
     },
-    "3": {
+    "2": {
       "id": "1003",
       "geometry": "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))",
       "attribute": {
@@ -45,7 +38,7 @@
         "shape_area": 123
       }
     },
-    "4": {
+    "3": {
       "id": "1004",
       "geometry": "GEOTIFF",
       "file": "---file object---",
