@@ -1,12 +1,12 @@
 from ldm_client import livedronemap
 import time, glob
 
-img_fname_list = glob.glob('example/*.JPG')
+img_fname_list = glob.glob('example_khris/*.jpg')
 
 # ldm = livedronemap('http://222.122.118.28:8001/')
 ldm = livedronemap('http://127.0.0.1:5000/')
-ldm.create_project('un_livedronemap')
-ldm.set_current_project('un_livedronemap')
+ldm.create_project('test_ti')
+ldm.set_current_project('test_ti')
 
 for img_fname in img_fname_list:
     eo_fname = img_fname.split('.')[0] + '.txt'
