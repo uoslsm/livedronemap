@@ -1,9 +1,9 @@
 from ldm_client import livedronemap
-import time, glob
+import time
+import glob
 
-img_fname_list = glob.glob('example_khris/*.jpg')
+img_fname_list = glob.glob('example_krihs/*.jpg')
 
-# ldm = livedronemap('http://222.122.118.28:8001/')
 ldm = livedronemap('http://127.0.0.1:5000/')
 ldm.create_project('test_ti')
 ldm.set_current_project('test_ti')

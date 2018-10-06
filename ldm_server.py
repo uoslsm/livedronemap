@@ -1,13 +1,16 @@
+import json
+import os
+import time
+
 from flask import Flask, request
 from werkzeug.utils import secure_filename
-import os
-import json
-from utils.orthophoto import rectify
+
 import config_server
+from image_processing.orthophoto import rectify
 
 # 플라스크 초기화
 app = Flask(__name__)
-app.config.from_object(config_server.KhrisConfig)
+app.config.from_object(config_server.KrihsConfig)
 
 
 def allowed_file(fname):
@@ -50,7 +53,7 @@ def ldm_upload(project_name):
                 file.save(os.path.join(project_folder, filename))  # 클라이언트로부터 전송받은 파일을 저장한다.
                 if key == 'eo': # 전송받은 파일이 EO인 경우, 그리고 칼리브레이션 모드가 켜진 경우 시스템 칼리브레이션을 수행한다.
                     if app.config['CALIBRATION']:
-                        from apx_file_reader import read_eo_file
+                        from image_processing.apx_file_reader import read_eo_file
                         calibrated_eo = read_eo_file(os.path.join(project_folder, fname_dict['eo']))
                         fname_dict['calibrated_eo'] = fname_dict['eo'].split('.')[0] + '_calibrated.txt'
                         with open(os.path.join(project_folder, fname_dict['calibrated_eo']), 'w') as f:
@@ -73,7 +76,34 @@ def ldm_upload(project_name):
 
         return 'LDM'
 
-# 오픈드론맵: 항공삼각측량
+
+# 시스템 점검: 드론과의 양방향 통신을 위한 폴링 대기
+@app.route('/check/drone_poling')
+def check_drone_polling():
+    app.config['DRONE']['asked_to_check'] = False
+    while True:
+        time.sleep(app.config['DRONE']['polling_time'])
+        if app.config['DRONE']['asked_to_check']:
+            return 'START_CHECKLIST'
+
+
+@app.route('/check/drone_checklist_result')
+def check_drone_result():
+    app.config['DRONE']['checklist_result'] = 'OK'
+    return 'OK'
+
+
+@app.route('/check/drone')
+def check_drone():
+    app.config['DRONE']['asked_to_check'] = True
+    time.sleep(app.config['DRONE']['timeout'])
+    if app.config['DRONE']['checklist_result'] == 'OK':
+        return 'OK'
+    else:
+        return 'drone system fault'
+
+
+# 오픈드론맵: 후처리
 @app.route('/odm_upload/<project_name>', methods=['POST'])
 def odm_upload(project_name):
     # TODO: WebODM에 데이터셋을 업로드한다.
@@ -81,4 +111,4 @@ def odm_upload(project_name):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(threaded=True)
