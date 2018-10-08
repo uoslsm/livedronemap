@@ -98,9 +98,10 @@ def check_drone():
     app.config['DRONE']['asked_to_check'] = True
     time.sleep(app.config['DRONE']['timeout'])
     if app.config['DRONE']['checklist_result'] == 'OK':
+        app.config['DRONE']['checklist_result'] = 'None'
         return 'OK'
     else:
-        return 'drone system fault'
+        return 'DISCONNECTED_OR_NOT_RESPONDING'
 
 
 # 오픈드론맵: 후처리
