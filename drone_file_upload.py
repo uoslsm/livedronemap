@@ -8,14 +8,15 @@ eo_list = []
 
 
 class Watcher:
-    DIRECTORY_TO_WATCH = "E:\Test_ti"
-
-    def __init__(self):
+    def __init__(self, directory_to_watch, ldm_address, ldm_project_name):
         self.observer = Observer()
+        self.directory_to_watch = directory_to_watch
+        self.ldm_address = ldm_address
+        self.ldm_project_name = ldm_project_name
 
     def run(self):
-        event_handler = Handler()
-        self.observer.schedule(event_handler, self.DIRECTORY_TO_WATCH, recursive=True)
+        event_handler = Handler(self.ldm_address, self.ldm_project_name)
+        self.observer.schedule(event_handler, self.directory_to_watch, recursive=True)
         self.observer.start()
         print("#### Monitoring Start")
         try:
@@ -24,14 +25,16 @@ class Watcher:
         except:
             self.observer.stop()
             print("Error")
-
         self.observer.join()
 
 
 class Handler(FileSystemEventHandler):
+    def __init__(self, ldm_address, ldm_project_name):
+        self.ldm_address = ldm_address
+        self.ldm_project_name = ldm_project_name
 
     @staticmethod
-    def on_any_event(event):
+    def on_any_event(self, event):
         if event.is_directory:
             return None
 
@@ -50,21 +53,18 @@ class Handler(FileSystemEventHandler):
                 print(len(image_list))
                 if image_list[i] in eo_list:
                     from ldm_client import livedronemap
-                    #ldm = livedronemap('http://172.16.127.184:5000/')
-                    ldm = livedronemap('http://172.16.127.171:5000/')
-                    ldm.create_project('test_ti')
-                    ldm.set_current_project('test_ti')
+                    ldm = livedronemap(self.ldm_address)
+                    ldm.create_project(self.ldm_project_name)
+                    ldm.set_current_project(self.ldm_project_name)
                     print(file_name)
                     ldm.ldm_upload(file_name+'.jpg', file_name+'.txt')
-                    #image_list.pop(i)
                     eo_list.remove(image_list.pop(i))
-                    #eo_list.pop(eo_list.index(image_list[i]))
-
-        #elif event.event_type == 'modified':
-            # Taken any action here when a file is modified.
-        #    print("Received modified event - %s." % event.src_path)
 
 
 if __name__ == '__main__':
-    w = Watcher()
+    w = Watcher(
+        directory_to_watch='D:\\python-workspace\\livedronemap\\example_upload',
+        ldm_address='127.0.0.1:5000',
+        ldm_project_name='drone_file_upload_test'
+    )
     w.run()
