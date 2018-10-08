@@ -42,4 +42,5 @@ if __name__ == '__main__':
     livedronemap = livedronemap('http://127.0.0.1:5000/')
     livedronemap.create_project('test1')
     livedronemap.set_current_project('test1')
-    livedronemap.ldm_upload('2017-04-10_125832.jpg', '2017-04-10_125832.txt')
+    result = livedronemap.ldm_upload('example_upload/2018-09-28_152851.jpg', 'example_upload/2018-09-28_152851.txt')
+    print(result)
