@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 
 import config_server
 from image_processing.orthophoto import rectify
+from image_processing.webodm import WebODM
 
 # 플라스크 초기화
 app = Flask(__name__)
@@ -105,9 +106,17 @@ def check_drone():
 
 
 # 오픈드론맵: 후처리
-@app.route('/odm_upload/<project_name>', methods=['POST'])
-def odm_upload(project_name):
-    # TODO: WebODM에 데이터셋을 업로드한다.
+@app.route('/webodm_upload/start_processing/<project_name>')
+def webodm_start_processing(project_name):
+    webodm = WebODM(
+        url=app.config['WEBODM_CONFIG']['url'],
+        username=app.config['WEBODM_CONFIG']['username'],
+        password=app.config['WEBODM_CONFIG']['password']
+    )
+    webodm.create_project(project_name=project_name)
+    project_folder = 'project/' + project_name
+    webodm.create_task(project_folder)
+
     return 'ODM'
 
 
