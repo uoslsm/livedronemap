@@ -1,3 +1,6 @@
+import json
+
+
 class BaseConfig(object):
     DEBUG = False
     TESTING = False
@@ -9,7 +12,6 @@ class BaseConfig(object):
         'polling_time': 0.5,
         'timeout': 10
     }
-    import json
     WEBODM_CONFIG = json.load(open('config_webodm.json', 'r'))
 
 

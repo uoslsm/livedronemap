@@ -9,8 +9,8 @@ eo_list = []
 
 
 def upload_data(image_fname, eo_fname):
-    from ldm_client import livedronemap
-    ldm = livedronemap(Config.LDM_ADDRESS)
+    from clients.ldm_client import Livedronemap
+    ldm = Livedronemap(Config.LDM_ADDRESS)
     ldm.create_project(Config.LDM_PROJECT_NAME)
     ldm.set_current_project(Config.LDM_PROJECT_NAME)
     result = ldm.ldm_upload(image_fname, eo_fname)

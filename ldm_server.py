@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 
 import config_server
 from image_processing.orthophoto import rectify
-from image_processing.webodm import WebODM
+from clients.webodm import WebODM
 
 # 플라스크 초기화
 app = Flask(__name__)
@@ -73,7 +73,7 @@ def ldm_upload(project_name):
                     gsd=app.config['LDM_CONFIG']['gsd'],
                     ground_height=app.config['LDM_CONFIG']['ground_height'])
 
-        # TODO: 기하보정한 이미지를 가시화 모듈에 전달한다.
+        # TODO: 기하보정한 이미지를 가시화 모듈에 전달한다. 마고3D 클라이언트 코드 만들기
 
         return 'LDM'
 

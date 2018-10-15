@@ -1,10 +1,10 @@
-from ldm_client import livedronemap
+from clients.ldm_client import Livedronemap
 import time
 import glob
 
 img_fname_list = glob.glob('example_krihs/*.jpg')
 
-ldm = livedronemap('http://127.0.0.1:5000/')
+ldm = Livedronemap('http://127.0.0.1:5000/')
 ldm.create_project('test_ti')
 ldm.set_current_project('test_ti')
 

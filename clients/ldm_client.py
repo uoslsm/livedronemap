@@ -1,7 +1,7 @@
 import requests
 
 
-class livedronemap:
+class Livedronemap:
     def __init__(self, url):
         self.url = url
         self.current_project = None
@@ -39,7 +39,7 @@ class livedronemap:
 
 
 if __name__ == '__main__':
-    livedronemap = livedronemap('http://127.0.0.1:5000/')
+    livedronemap = Livedronemap('http://127.0.0.1:5000/')
     livedronemap.create_project('test1')
     livedronemap.set_current_project('test1')
     result = livedronemap.ldm_upload('example_upload/2018-09-28_152851.jpg', 'example_upload/2018-09-28_152851.txt')
