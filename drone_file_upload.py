@@ -41,13 +41,23 @@ class Handler(FileSystemEventHandler):
             return None
         elif event.event_type == 'created':
             file_name = event.src_path.split('\\')[-1].split('.')[0]
+            file_name_prefix = file_name[0:6]
             extension_name = event.src_path.split('.')[1]
-
+            # FTP 전송시 임시파일 무시하고 다운로드가 완료될 때 까지 대기
+            if file_name_prefix == '~ftpb_':
+                file_name = file_name[6:]
+                while True:
+                    time.sleep(1)
+                    img_exists = os.path.isfile(
+                        os.path.join(Config.DIRECTORY_TO_WATCH, file_name + '.' + Config.IMAGE_FILE_EXT))
+                    eo_exists = os.path.isfile(
+                        os.path.join(Config.DIRECTORY_TO_WATCH, file_name + '.' + Config.EO_FILE_EXT))
+                    if img_exists & eo_exists:
+                        break
             if Config.IMAGE_FILE_EXT in extension_name:
                 image_list.append(file_name)
             else:
                 eo_list.append(file_name)
-
             for i in range(len(image_list)):
                 if image_list[i] in eo_list:
                     upload_data(

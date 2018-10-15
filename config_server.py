@@ -13,6 +13,7 @@ class BaseConfig(object):
         'timeout': 10
     }
     WEBODM_CONFIG = json.load(open('config_webodm.json', 'r'))
+    MAGO3D_CONFIG = json.load(open('config_mago3d.json', 'r'))
 
 
 class KrihsConfig(BaseConfig):
