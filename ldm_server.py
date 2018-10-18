@@ -12,7 +12,7 @@ from clients.mago3d import Mago3D
 
 # 플라스크 초기화
 app = Flask(__name__)
-app.config.from_object(config_server.KrihsConfig)
+app.config.from_object(config_server.DJIMavicConfig)
 
 
 def allowed_file(fname):
@@ -73,10 +73,17 @@ def ldm_upload(project_name):
                     focal_length=app.config['LDM_CONFIG']['focal_length'],
                     gsd=app.config['LDM_CONFIG']['gsd'],
                     ground_height=app.config['LDM_CONFIG']['ground_height'])
-
-        mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], username=app.config['MAGO3D_CONFIG']['username'])
-        # TODO: 메타데이터 생성
-        # TODO: mago3d.upload(img_fname=fname_dict['img'], img_metadata=??)
+            # 기하보정한 결과(PNG)를 GeoTiff로 변환한다
+            fname_dict['img_GTiff'] = fname_dict['img'].split('.')[0] + '.tif'
+            os.system('%s -of GTiff project\\%s\\rectified\\%s project\\%s\\rectified\\%s'
+                      % (app.config['PATH']['gdal_path'], project_name, fname_dict['img'].split('.')[0] + '.png',
+                         project_name, fname_dict['img_GTiff']))
+            # TODO: 메타데이터 생성
+            img_metadata = json.load(open(app.config['PATH']['img_metadata_path'], 'r'))
+            img_metadata['file_name'] = fname_dict['img_GTiff']
+            mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], user_id=app.config['MAGO3D_CONFIG']['user_id'],
+                            api_key=app.config['MAGO3D_CONFIG']['api_key'])
+            mago3d.upload(img_fname=fname_dict['img_GTiff'], img_metadata=img_metadata)
 
         return 'LDM'
 

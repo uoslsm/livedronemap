@@ -14,6 +14,10 @@ class BaseConfig(object):
     }
     WEBODM_CONFIG = json.load(open('config_webodm.json', 'r'))
     MAGO3D_CONFIG = json.load(open('config_mago3d.json', 'r'))
+    PATH = {
+        'img_metadata_path': 'json_templates/ldm2mago3d_img_metadata.json',
+        'gdal_path': 'C:\\OSGeo4W64\\bin\\gdal_translate.exe'
+    }
 
 
 class KrihsConfig(BaseConfig):
@@ -21,6 +25,16 @@ class KrihsConfig(BaseConfig):
     LDM_CONFIG = {
         "pixel_size": 0.00000488967,
         'focal_length': 0.025,
+        'gsd': 0.25,
+        'ground_height': 10
+    }
+
+
+class DJIMavicConfig(BaseConfig):
+    CALIBRATION = False
+    LDM_CONFIG = {
+        "pixel_size": 0.00000156425,
+        'focal_length': 0.0047,
         'gsd': 0.25,
         'ground_height': 10
     }
