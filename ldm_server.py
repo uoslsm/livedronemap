@@ -7,8 +7,10 @@ from werkzeug.utils import secure_filename
 
 import config_server
 from image_processing.orthophoto import rectify
+from image_processing.img_metadata_generation import create_img_metadata
 from clients.webodm import WebODM
 from clients.mago3d import Mago3D
+from object_detection.red_tide import detect_red_tide
 
 # 플라스크 초기화
 app = Flask(__name__)
@@ -78,12 +80,20 @@ def ldm_upload(project_name):
             os.system('%s -of GTiff project\\%s\\rectified\\%s project\\%s\\rectified\\%s'
                       % (app.config['PATH']['gdal_path'], project_name, fname_dict['img'].split('.')[0] + '.png',
                          project_name, fname_dict['img_GTiff']))
-            # TODO: 메타데이터 생성
-            img_metadata = json.load(open(app.config['PATH']['img_metadata_path'], 'r'))
-            img_metadata['file_name'] = fname_dict['img_GTiff']
-            mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], user_id=app.config['MAGO3D_CONFIG']['user_id'],
-                            api_key=app.config['MAGO3D_CONFIG']['api_key'])
-            mago3d.upload(img_fname=fname_dict['img_GTiff'], img_metadata=img_metadata)
+            # 기하보정한 이미지로부터 객체를 탐지한다
+            # 적조탐지
+            red_tide_result = detect_red_tide('json_template/ldm_mago3d_detected_objects.json',
+                            'project\\%s\\rectified\\%s' % (project_name, fname_dict['img_GTiff']))
+            # 메타데이터 생성
+            img_metadata = create_img_metadata('json_template/ldm2mago3d_img_metadata.json',
+                                               fname_dict['img_GTiff'],
+                                               'project\\%s\\%s' % (project_name, fname_dict[eo_key]),
+                                               detected_objects=red_tide_result)
+            with open('project\\%s\\rectified\\%s' % (project_name, fname_dict['img'].split('.')[0] + '.json'), 'w') as f:
+                f.write(json.dumps(img_metadata))
+            # mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], user_id=app.config['MAGO3D_CONFIG']['user_id'],
+            #                 api_key=app.config['MAGO3D_CONFIG']['api_key'])
+            # mago3d.upload(img_fname=fname_dict['img_GTiff'], img_metadata=img_metadata)
 
         return 'LDM'
 

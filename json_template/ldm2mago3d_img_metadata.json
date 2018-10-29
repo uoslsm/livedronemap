@@ -1,0 +1,18 @@
+{
+    "drone_project_id": 1,
+    "data_type": 0,
+    "file_name": null,
+    "detected_objects": [],
+    "drone": {
+        "drone_id": null,
+        "drone_name": null,
+        "latitude": null,
+        "longitude": null,
+        "altitude": null,
+        "roll": null,
+        "pitch": null,
+        "yaw": null,
+        "insert_date": null
+    },
+    "shooting_date": null
+}

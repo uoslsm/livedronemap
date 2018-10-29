@@ -1,0 +1,18 @@
+{
+  "number": null,
+  "ortho_detected_object_id": null,
+  "drone_project_id": null,
+  "ortho_image_id": null,
+  "user_id": null,
+  "object_type": null,
+  "geometry": null,
+  "detected_date": null,
+  "bounding_box_geometry": null,
+  "major_axis": null,
+  "minor_axis": null,
+  "orientation": null,
+  "bounding_box_area": null,
+  "length": null,
+  "speed": null,
+  "insert_date": null
+}
