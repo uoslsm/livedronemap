@@ -6,10 +6,11 @@ class Livedronemap:
         self.url = url
         self.current_project_id = None
 
-    def create_project(self, project_name):
+    def create_project(self, project_name, project_type='0'):
         project_json = {
             'mode': 'create',
-            'name':  project_name
+            'name':  project_name,
+            'project_type': project_type
         }
         r = requests.post(self.url + 'project/', json=project_json)
         return r.text

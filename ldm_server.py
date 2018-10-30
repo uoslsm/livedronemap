@@ -11,6 +11,7 @@ from image_processing.img_metadata_generation import create_img_metadata
 from clients.webodm import WebODM
 from clients.mago3d import Mago3D
 from object_detection.red_tide import detect_red_tide
+from drone_image_check import start_image_check
 
 # 플라스크 초기화
 app = Flask(__name__)
@@ -29,12 +30,13 @@ def project():
         return json.dumps(project_list)
     if request.method == 'POST':
         new_project_name = request.json['name']
+        new_project_type = request.json['project_type']
         # if new_project_name in project_list:
         #     return 'Project folder %s already exists' % new_project_name
         # else:
         mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], user_id=app.config['MAGO3D_CONFIG']['user_id'],
                         api_key=app.config['MAGO3D_CONFIG']['api_key'])
-        res = mago3d.create_project(new_project_name, 0, '테스트')
+        res = mago3d.create_project(new_project_name, new_project_type, '테스트')
         project_id = str(res.json()['droneProjectId'])
 
         new_project_dir = os.path.join(app.config['UPLOAD_FOLDER'], project_id)
@@ -142,6 +144,17 @@ def check_drone():
 
 @app.route('/check/beacon')
 def check_beacon():
+    return 'OK'
+
+
+@app.route('/check/sim/from_ldm')
+def check_sim_from_ldm():
+    start_image_check()
+    return 'OK'
+
+
+@app.route('/check/sim/from_drone')
+def check_sim_from_drone():
     return 'OK'
 
 
