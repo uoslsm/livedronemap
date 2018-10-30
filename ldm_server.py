@@ -29,19 +29,25 @@ def project():
         return json.dumps(project_list)
     if request.method == 'POST':
         new_project_name = request.json['name']
-        if new_project_name in project_list:
-            return 'Project folder %s already exists' % new_project_name
-        else:
-            new_project_dir = os.path.join(app.config['UPLOAD_FOLDER'], new_project_name)
-            os.mkdir(new_project_dir)
-            os.mkdir(os.path.join(new_project_dir, 'rectified'))
-            return 'Project folder %s created' % new_project_name
+        # if new_project_name in project_list:
+        #     return 'Project folder %s already exists' % new_project_name
+        # else:
+        mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], user_id=app.config['MAGO3D_CONFIG']['user_id'],
+                        api_key=app.config['MAGO3D_CONFIG']['api_key'])
+        res = mago3d.create_project(new_project_name, 0, '테스트')
+        project_id = str(res.json()['droneProjectId'])
+
+        new_project_dir = os.path.join(app.config['UPLOAD_FOLDER'], project_id)
+        os.mkdir(new_project_dir)
+        os.mkdir(os.path.join(new_project_dir, 'rectified'))
+
+        return project_id
 
 
 # 라이브 드론맵: 이미지 업로드, 기하보정 및 가시화
-@app.route('/ldm_upload/<project_name>', methods=['POST'])
-def ldm_upload(project_name):
-    project_folder = os.path.join(app.config['UPLOAD_FOLDER'], project_name)
+@app.route('/ldm_upload/<project_id_str>', methods=['POST'])
+def ldm_upload(project_id_str):
+    project_folder = os.path.join(app.config['UPLOAD_FOLDER'], project_id_str)
     if request.method == 'POST':
         # 클라이언트로부터 이미지와 EO 파일을 전송받는다. 전송된 파일의 무결성을 확인하고 EO 파일에 대해 시스템 칼리브레이션을 수행한다.
         fname_dict = {'img': None, 'eo': None, 'calibrated_eo': None}
@@ -67,8 +73,8 @@ def ldm_upload(project_name):
                 eo_key = 'calibrated_eo'
             else:
                 eo_key = 'eo'
-            rectify(input_dir=os.path.join(os.getcwd(), 'project\\%s\\' % project_name),
-                    output_dir=os.path.join(os.getcwd(), 'project\\%s\\rectified\\' % project_name),
+            rectify(input_dir=os.path.join(os.getcwd(), 'project\\%s\\' % project_id_str),
+                    output_dir=os.path.join(os.getcwd(), 'project\\%s\\rectified\\' % project_id_str),
                     eo_fname=fname_dict[eo_key],
                     img_fname=fname_dict['img'],
                     pixel_size=app.config['LDM_CONFIG']['pixel_size'],
@@ -78,22 +84,31 @@ def ldm_upload(project_name):
             # 기하보정한 결과(PNG)를 GeoTiff로 변환한다
             fname_dict['img_GTiff'] = fname_dict['img'].split('.')[0] + '.tif'
             os.system('%s -of GTiff project\\%s\\rectified\\%s project\\%s\\rectified\\%s'
-                      % (app.config['PATH']['gdal_path'], project_name, fname_dict['img'].split('.')[0] + '.png',
-                         project_name, fname_dict['img_GTiff']))
+                      % (app.config['PATH']['gdal_path'], project_id_str, fname_dict['img'].split('.')[0] + '.png',
+                         project_id_str, fname_dict['img_GTiff']))
             # 기하보정한 이미지로부터 객체를 탐지한다
             # 적조탐지
-            red_tide_result = detect_red_tide('json_template/ldm_mago3d_detected_objects.json',
-                            'project\\%s\\rectified\\%s' % (project_name, fname_dict['img_GTiff']))
+            # red_tide_result = detect_red_tide('json_template/ldm_mago3d_detected_objects.json',
+            #                 'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img_GTiff']))
+            red_tide_result = []
             # 메타데이터 생성
-            img_metadata = create_img_metadata('json_template/ldm2mago3d_img_metadata.json',
-                                               fname_dict['img_GTiff'],
-                                               'project\\%s\\%s' % (project_name, fname_dict[eo_key]),
-                                               detected_objects=red_tide_result)
-            with open('project\\%s\\rectified\\%s' % (project_name, fname_dict['img'].split('.')[0] + '.json'), 'w') as f:
+            with open(os.path.join('project\\%s\\rectified\\%s' % (project_id_str, fname_dict[eo_key]))) as f:
+                bounding_box_image = f.readline()
+                img_metadata = create_img_metadata('json_template/ldm2mago3d_img_metadata.json',
+                                                   fname_dict['img_GTiff'],
+                                                   'project\\%s\\%s' % (project_id_str, fname_dict[eo_key]),
+                                                   detected_objects=red_tide_result,
+                                                   bounding_box_image=bounding_box_image,
+                                                   drone_project_id=int(project_id_str))
+            with open('project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img'].split('.')[0] + '.json'), 'w') as f:
                 f.write(json.dumps(img_metadata))
-            # mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], user_id=app.config['MAGO3D_CONFIG']['user_id'],
-            #                 api_key=app.config['MAGO3D_CONFIG']['api_key'])
-            # mago3d.upload(img_fname=fname_dict['img_GTiff'], img_metadata=img_metadata)
+            # Mago3D에 전송
+            mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], user_id=app.config['MAGO3D_CONFIG']['user_id'],
+                            api_key=app.config['MAGO3D_CONFIG']['api_key'])
+            res = mago3d.upload(img_fname='project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img_GTiff']),
+                                img_metadata=img_metadata)
+            print(res)
+            print(res.text)
 
         return 'LDM'
 
@@ -123,6 +138,11 @@ def check_drone():
         return 'OK'
     else:
         return 'DISCONNECTED_OR_NOT_RESPONDING'
+
+
+@app.route('/check/beacon')
+def check_beacon():
+    return 'OK'
 
 
 # 오픈드론맵: 후처리

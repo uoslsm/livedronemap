@@ -6,8 +6,8 @@ from tqdm import tqdm
 img_fname_list = glob.glob('example_dji_red-tide-detection/*.JPG')
 
 ldm = Livedronemap('http://127.0.0.1:5000/')
-ldm.create_project('test_dji_red_tide_detection')
-ldm.set_current_project('test_dji_red_tide_detection')
+project_id = ldm.create_project('test_dji_red_tide_detection_200')
+ldm.set_current_project(project_id)
 
 for img_fname in tqdm(img_fname_list):
     eo_fname = img_fname.split('.')[0] + '.txt'

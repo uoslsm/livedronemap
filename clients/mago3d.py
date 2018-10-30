@@ -31,6 +31,27 @@ class Mago3D:
             self.set_headers(token=token)
         return token
 
+    def create_project(self, drone_project_name, drone_project_type, shooting_area):
+        data = {
+            "drone_id": 1,
+            "drone_project_name": drone_project_name,
+            "drone_project_type": drone_project_type,
+            "shooting_area": shooting_area,
+            "shooting_upper_left_latitude": 37.1,
+            "shooting_upper_left_longitude": 132.23,
+            "shooting_upper_right_latitude": 37.2,
+            "shooting_upper_right_longitude": 132.24,
+            "shooting_lower_right_latitude": 37.3,
+            "shooting_lower_right_longitude": 132.25,
+            "shooting_lower_left_latitude": 37.4,
+            "shooting_lower_left_longitude": 132.26,
+            "location": "POINT (128.382757714281 34.7651373676212)",
+            "shooting_date": "20180929203800",  # TODO: 현재시각
+            "description": "시뮬레이션 프로젝트"
+        }
+        res = requests.post(url=self.url + 'drone-projects/', headers=self.headers, data=data)
+        return res
+
     def upload(self, img_fname, img_metadata):
         data = {'file_meta': json.dumps(img_metadata)}
         files = {
@@ -38,3 +59,10 @@ class Mago3D:
         }
         res = requests.post(url=self.url + 'transfer-data/', headers=self.headers, files=files, data=data)
         return res
+
+
+if __name__ == '__main__':
+    mago3d = Mago3D('http://seoul.gaia3d.com:30080/', 'ldm_uos', '54fe3dcd-f814-447a-a476-96e216dd774e')
+    res = mago3d.create_project('uos_test_2', 0, '동해바다~~')
+    print(res)
+    print(res.json()['droneProjectId'])

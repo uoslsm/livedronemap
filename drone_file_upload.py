@@ -3,16 +3,17 @@ import os
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from config_drone import BaseConfig as Config
+from clients.ldm_client import Livedronemap
 
 image_list = []
 eo_list = []
 
+ldm = Livedronemap(Config.LDM_ADDRESS)
+project_id = ldm.create_project(Config.LDM_PROJECT_NAME)
+ldm.set_current_project(Config.LDM_PROJECT_NAME)
+
 
 def upload_data(image_fname, eo_fname):
-    from clients.ldm_client import Livedronemap
-    ldm = Livedronemap(Config.LDM_ADDRESS)
-    ldm.create_project(Config.LDM_PROJECT_NAME)
-    ldm.set_current_project(Config.LDM_PROJECT_NAME)
     result = ldm.ldm_upload(image_fname, eo_fname)
     print(result)
 

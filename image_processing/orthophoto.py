@@ -2,7 +2,8 @@ import ctypes as c
 import os
 import cv2
 
-def rectify(input_dir, output_dir, eo_fname, img_fname, pixel_size, focal_length, gsd, ground_height, visualize=False, visualize_time=3000):
+
+def rectify(input_dir, output_dir, eo_fname, img_fname, pixel_size, focal_length, gsd, ground_height, visualize=True, visualize_time=3000):
     input_file_path = input_dir.encode('utf-8')
     output_file_path = output_dir.encode('utf-8')
     eo_name = eo_fname.encode('utf-8')
