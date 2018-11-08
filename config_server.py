@@ -7,7 +7,8 @@ class BaseConfig(object):
     UPLOAD_FOLDER = 'project'
     ALLOWED_EXTENSIONS = set(['JPG', 'jpg', 'txt'])
     DRONE = {
-        'asked_to_check': False,
+        'asked_health_check': False,
+        'asked_sim': False,
         'checklist_result': None,
         'polling_time': 0.5,
         'timeout': 10

@@ -119,11 +119,14 @@ def ldm_upload(project_id_str):
 # 시스템 점검: 드론과의 양방향 통신을 위한 폴링 대기
 @app.route('/check/drone_poling')
 def check_drone_polling():
-    app.config['DRONE']['asked_to_check'] = False
+    app.config['DRONE']['asked_health_check'] = False
+    app.config['DRONE']['asked_sim'] = False
     while True:
         time.sleep(app.config['DRONE']['polling_time'])
-        if app.config['DRONE']['asked_to_check']:
-            return 'START_CHECKLIST'
+        if app.config['DRONE']['asked_health_check']:
+            return 'START_HEALTH_CHECK'
+        elif app.config['DRONE']['asked_sim']:
+            return 'START_SIM'
 
 
 @app.route('/check/drone_checklist_result')
@@ -134,7 +137,7 @@ def check_drone_result():
 
 @app.route('/check/drone')
 def check_drone():
-    app.config['DRONE']['asked_to_check'] = True
+    app.config['DRONE']['asked_health_check'] = True
     time.sleep(app.config['DRONE']['timeout'])
     if app.config['DRONE']['checklist_result'] == 'OK':
         app.config['DRONE']['checklist_result'] = 'None'
@@ -156,7 +159,8 @@ def check_sim_from_ldm():
 
 @app.route('/check/sim/from_drone')
 def check_sim_from_drone():
-    return 'OK'
+    app.config['DRONE']['asked_sim'] = True
+    return 'LDM asked the drone to send images. Please wait'
 
 
 # 오픈드론맵: 후처리
