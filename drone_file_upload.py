@@ -8,7 +8,7 @@ from clients.ldm_client import Livedronemap
 image_list = []
 eo_list = []
 
-ldm = Livedronemap(Config.LDM_ADDRESS)
+ldm = Livedronemap(Config.LDM_ADDRESS, Config.MAGO3D_ADDRESS)
 project_id = ldm.create_project(Config.LDM_PROJECT_NAME)
 ldm.set_current_project(Config.LDM_PROJECT_NAME)
 

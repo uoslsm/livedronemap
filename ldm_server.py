@@ -85,8 +85,8 @@ def ldm_upload(project_id_str):
                     ground_height=app.config['LDM_CONFIG']['ground_height'])
             # 기하보정한 결과(PNG)를 GeoTiff로 변환한다
             fname_dict['img_GTiff'] = fname_dict['img'].split('.')[0] + '.tif'
-            os.system('%s -of GTiff project\\%s\\rectified\\%s project\\%s\\rectified\\%s'
-                      % (app.config['PATH']['gdal_path'], project_id_str, fname_dict['img'].split('.')[0] + '.png',
+            os.system('gdal_translate -of GTiff project\\%s\\rectified\\%s project\\%s\\rectified\\%s'
+                      % (project_id_str, fname_dict['img'].split('.')[0] + '.png',
                          project_id_str, fname_dict['img_GTiff']))
             # 기하보정한 이미지로부터 객체를 탐지한다
             # 적조탐지
@@ -97,9 +97,9 @@ def ldm_upload(project_id_str):
             with open(os.path.join('project\\%s\\rectified\\%s' %
                                    (project_id_str, fname_dict[eo_key].split('.')[0] + '.wkt'))) as f:
                 bounding_box_image = f.readline()
-                img_metadata = create_img_metadata('json_template/ldm2mago3d_img_metadata.json',
-                                                   fname_dict['img_GTiff'],
-                                                   'project\\%s\\%s' % (project_id_str, fname_dict[eo_key]),
+                img_metadata = create_img_metadata(img_metadata_json_template_fname='json_template/ldm2mago3d_img_metadata.json',
+                                                   img_fname=['img_GTiff'],
+                                                   eo_path='project\\%s\\%s' % (project_id_str, fname_dict[eo_key]),
                                                    detected_objects=red_tide_result,
                                                    bounding_box_image=bounding_box_image,
                                                    drone_project_id=int(project_id_str))
@@ -117,7 +117,7 @@ def ldm_upload(project_id_str):
 
 
 # 시스템 점검: 드론과의 양방향 통신을 위한 폴링 대기
-@app.route('/check/drone_poling')
+@app.route('/check/drone_polling')
 def check_drone_polling():
     app.config['DRONE']['asked_health_check'] = False
     app.config['DRONE']['asked_sim'] = False

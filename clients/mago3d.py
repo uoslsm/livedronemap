@@ -60,9 +60,25 @@ class Mago3D:
         res = requests.post(url=self.url + 'transfer-data/', headers=self.headers, files=files, data=data)
         return res
 
+    def set_simulation_id(self, simulation_id, drone_project_id, status='2'):
+        simulation_json = {
+            'simulation_log_id': simulation_id,
+            'drone_project_id': drone_project_id,
+            'status': status
+        }
+        r = requests.post(url=self.url + 'simulations/%s' % simulation_id, json=simulation_json)
+        return r.text
+
+    def conclude_simulation(self, drone_project_id):
+        data = {
+            'drone_project_id': drone_project_id,
+            'status': '4'
+        }
+        r = requests.post(url=self.url + 'drone-projects/%s' % drone_project_id, json=data)
+        return r.text
+
 
 if __name__ == '__main__':
     mago3d = Mago3D('http://seoul.gaia3d.com:30080/', 'ldm_uos', '54fe3dcd-f814-447a-a476-96e216dd774e')
-    res = mago3d.create_project('uos_test_2', 0, '동해바다~~')
+    res = mago3d.conclude_simulation('129')
     print(res)
-    print(res.json()['droneProjectId'])

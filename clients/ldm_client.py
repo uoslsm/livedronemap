@@ -2,8 +2,9 @@ import requests
 
 
 class Livedronemap:
-    def __init__(self, url):
-        self.url = url
+    def __init__(self, ldm_url, mago3d_url):
+        self.ldm_url = ldm_url
+        self.mago3d_url = mago3d_url
         self.current_project_id = None
         self.current_simulation_id = None
 
@@ -13,11 +14,11 @@ class Livedronemap:
             'name':  project_name,
             'project_type': project_type
         }
-        r = requests.post(self.url + 'project/', json=project_json)
+        r = requests.post(self.ldm_url + 'project/', json=project_json)
         return r.text
 
     def read_project(self):
-        r = requests.get(self.url + 'project/')
+        r = requests.get(self.ldm_url + 'project/')
         return r.json()
 
     def set_current_project(self, project_id):
@@ -27,29 +28,6 @@ class Livedronemap:
         else:
             print('Project %s does not exist' % project_id)
 
-    def set_simulation_id(self, simulation_id):
-        self.current_simulation_id = simulation_id
-        simulation_json = {
-            'simulation_log_id': self.current_simulation_id,
-            'drone_project_id': self.current_project_id,
-            'status': '2' # 연결
-        }
-        r = requests.post(self.url + 'simulations/%s' % self.current_simulation_id, json=simulation_json)
-        return r.text
-
-    def conclude_simulation(self, success=True):
-        if success:
-            status_code = 4
-        else:
-            status_code = 1
-        simulation_json = {
-            'simulation_log_id': self.current_simulation_id,
-            'drone_project_id': self.current_project_id,
-            'status': str(status_code)
-        }
-        r = requests.post(self.url + 'simulations/%s' % self.current_simulation_id, json=simulation_json)
-        return r.text
-
     def ldm_upload(self, img_fname, eo_fname):
         if self.current_project_id is not None:
             try:
@@ -57,7 +35,7 @@ class Livedronemap:
                     'img': open(img_fname, 'rb'),
                     'eo': open(eo_fname, 'rb')
                 }
-                r = requests.post(self.url + 'ldm_upload/' + self.current_project_id, files=files)
+                r = requests.post(self.ldm_url + 'ldm_upload/' + self.current_project_id, files=files)
                 return r
             except Exception as e:
                 return e
