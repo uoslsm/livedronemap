@@ -1,15 +1,16 @@
-from clients.ldm_client import Livedronemap
 import time
 import glob
 from tqdm import tqdm
 
+from config_drone import BaseConfig as Config
+from clients.ldm_client import Livedronemap
+
 
 def start_image_check():
-    img_fname_list = glob.glob('example_dji_red-tide-detection/*.JPG')
+    img_fname_list = glob.glob('%s/*.JPG' % Config.DIRECTORY_IMAGE_CHECK)
 
-    # ldm = Livedronemap('http://127.0.0.1:5000/')
-    ldm = Livedronemap('http://222.122.118.28:8001/')
-    project_id = ldm.create_project('test_dji_red_tide_detection_400', project_type='1')
+    ldm = Livedronemap(Config.LDM_ADDRESS)
+    project_id = ldm.create_project('This is for test', project_type='1')
     ldm.set_current_project(project_id)
 
     for img_fname in tqdm(img_fname_list):
@@ -18,3 +19,7 @@ def start_image_check():
         if result.status_code != 200:
             print('Image: %s, EO: %s, Result: %s' % (img_fname, eo_fname, result.status_code))
         time.sleep(1)
+
+
+if __name__ == '__main__':
+    start_image_check()

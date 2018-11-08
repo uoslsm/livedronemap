@@ -36,5 +36,5 @@ class DJIMavicConfig(BaseConfig):
         "pixel_size": 0.00000156425,
         'focal_length': 0.0047,
         'gsd': 0.25,
-        'ground_height': 10
+        'ground_height': 0
     }

@@ -90,11 +90,12 @@ def ldm_upload(project_id_str):
                          project_id_str, fname_dict['img_GTiff']))
             # 기하보정한 이미지로부터 객체를 탐지한다
             # 적조탐지
-            # red_tide_result = detect_red_tide('json_template/ldm_mago3d_detected_objects.json',
-            #                 'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img_GTiff']))
-            red_tide_result = []
+            red_tide_result = detect_red_tide('json_template/ldm_mago3d_detected_objects.json',
+                            'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img_GTiff']))
+            # red_tide_result = []
             # 메타데이터 생성
-            with open(os.path.join('project\\%s\\rectified\\%s' % (project_id_str, fname_dict[eo_key]))) as f:
+            with open(os.path.join('project\\%s\\rectified\\%s' %
+                                   (project_id_str, fname_dict[eo_key].split('.')[0] + '.wkt'))) as f:
                 bounding_box_image = f.readline()
                 img_metadata = create_img_metadata('json_template/ldm2mago3d_img_metadata.json',
                                                    fname_dict['img_GTiff'],
