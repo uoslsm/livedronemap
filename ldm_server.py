@@ -126,7 +126,7 @@ def check_drone_polling():
         if app.config['DRONE']['asked_health_check']:
             return 'START_HEALTH_CHECK'
         elif app.config['DRONE']['asked_sim']:
-            return 'START_SIM'
+            return app.config['SIMULATION_ID']
 
 
 @app.route('/check/drone_checklist_result')
@@ -159,20 +159,21 @@ def check_sim_from_ldm():
 
 @app.route('/check/sim/from_drone')
 def check_sim_from_drone():
+    app.config['SIMULATION_ID'] = request.args.get('simulation_id')
     app.config['DRONE']['asked_sim'] = True
-    return 'LDM asked the drone to send images. Please wait'
+    return 'OK'
 
 
 # 오픈드론맵: 후처리
-@app.route('/webodm_upload/start_processing/<project_name>')
-def webodm_start_processing(project_name):
+@app.route('/webodm_upload/start_processing/<project_id>')
+def webodm_start_processing(project_id_str):
     webodm = WebODM(
         url=app.config['WEBODM_CONFIG']['url'],
         username=app.config['WEBODM_CONFIG']['username'],
         password=app.config['WEBODM_CONFIG']['password']
     )
-    webodm.create_project(project_name=project_name)
-    project_folder = 'project/' + project_name
+    webodm.create_project(project_name=project_id_str)
+    project_folder = 'project/' + project_id_str
     webodm.create_task(project_folder)
 
     return 'ODM'

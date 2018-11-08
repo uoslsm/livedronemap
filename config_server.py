@@ -19,6 +19,7 @@ class BaseConfig(object):
         'img_metadata_path': 'json_templates/ldm2mago3d_img_metadata.json',
         'gdal_path': 'C:\\OSGeo4W64\\bin\\gdal_translate.exe'
     }
+    SIMULATION_ID = None
 
 
 class KrihsConfig(BaseConfig):

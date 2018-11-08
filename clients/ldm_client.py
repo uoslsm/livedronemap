@@ -5,6 +5,7 @@ class Livedronemap:
     def __init__(self, url):
         self.url = url
         self.current_project_id = None
+        self.current_simulation_id = None
 
     def create_project(self, project_name, project_type='0'):
         project_json = {
@@ -25,6 +26,29 @@ class Livedronemap:
             self.current_project_id = project_id
         else:
             print('Project %s does not exist' % project_id)
+
+    def set_simulation_id(self, simulation_id):
+        self.current_simulation_id = simulation_id
+        simulation_json = {
+            'simulation_log_id': self.current_simulation_id,
+            'drone_project_id': self.current_project_id,
+            'status': '2' # 연결
+        }
+        r = requests.post(self.url + 'simulations/%s' % self.current_simulation_id, json=simulation_json)
+        return r.text
+
+    def conclude_simulation(self, success=True):
+        if success:
+            status_code = 4
+        else:
+            status_code = 1
+        simulation_json = {
+            'simulation_log_id': self.current_simulation_id,
+            'drone_project_id': self.current_project_id,
+            'status': str(status_code)
+        }
+        r = requests.post(self.url + 'simulations/%s' % self.current_simulation_id, json=simulation_json)
+        return r.text
 
     def ldm_upload(self, img_fname, eo_fname):
         if self.current_project_id is not None:
