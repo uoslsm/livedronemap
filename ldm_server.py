@@ -102,7 +102,7 @@ def ldm_upload(project_id_str):
                                    (project_id_str, fname_dict[eo_key].split('.')[0] + '.wkt'))) as f:
                 bounding_box_image = f.readline()
                 img_metadata = create_img_metadata(img_metadata_json_template_fname='json_template/ldm2mago3d_img_metadata.json',
-                                                   img_fname=['img_GTiff'],
+                                                   img_fname=fname_dict['img_GTiff'],
                                                    eo_path='project\\%s\\%s' % (project_id_str, fname_dict[eo_key]),
                                                    detected_objects=red_tide_result,
                                                    bounding_box_image=bounding_box_image,
