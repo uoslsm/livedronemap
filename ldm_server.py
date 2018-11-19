@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 from flask import Flask, request
 from werkzeug.utils import secure_filename
@@ -16,6 +17,9 @@ from drone_image_check import start_image_check
 # 플라스크 초기화
 app = Flask(__name__)
 app.config.from_object(config_server.DJIMavicConfig)
+
+# 멀티쓰레드 초기화
+executor = ThreadPoolExecutor(2)
 
 
 def allowed_file(fname):
@@ -153,7 +157,8 @@ def check_beacon():
 
 @app.route('/check/sim/from_ldm')
 def check_sim_from_ldm():
-    start_image_check()
+    app.config['SIMULATION_ID'] = request.args.get('simulation_id')
+    executor.submit(start_image_check, app.config['SIMULATION_ID'])
     return 'OK'
 
 

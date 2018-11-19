@@ -22,6 +22,4 @@ def create_img_metadata(img_metadata_json_template_fname, img_fname, bounding_bo
             # TODO: EXIF 데이터에서 시간 추출 (지금은 그냥 현재시각으로)
             img_metadata['drone']['insert_date'] = arrow.utcnow().format('YYYYMMDDHHmmss')
     img_metadata['shooting_date'] = arrow.utcnow().format('YYYYMMDDHHmmss')
-    # img_metadata = json.dumps(img_metadata)
-    print(img_metadata)
     return img_metadata

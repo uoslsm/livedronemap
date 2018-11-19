@@ -2,9 +2,8 @@ import requests
 
 
 class Livedronemap:
-    def __init__(self, ldm_url, mago3d_url):
-        self.ldm_url = ldm_url
-        self.mago3d_url = mago3d_url
+    def __init__(self, url):
+        self.url = url
         self.current_project_id = None
         self.current_simulation_id = None
 
@@ -14,11 +13,11 @@ class Livedronemap:
             'name':  project_name,
             'project_type': project_type
         }
-        r = requests.post(self.ldm_url + 'project/', json=project_json)
+        r = requests.post(self.url + 'project/', json=project_json)
         return r.text
 
     def read_project(self):
-        r = requests.get(self.ldm_url + 'project/')
+        r = requests.get(self.url + 'project/')
         return r.json()
 
     def set_current_project(self, project_id):
@@ -35,7 +34,7 @@ class Livedronemap:
                     'img': open(img_fname, 'rb'),
                     'eo': open(eo_fname, 'rb')
                 }
-                r = requests.post(self.ldm_url + 'ldm_upload/' + self.current_project_id, files=files)
+                r = requests.post(self.url + 'ldm_upload/' + self.current_project_id, files=files)
                 return r
             except Exception as e:
                 return e
