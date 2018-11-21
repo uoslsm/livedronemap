@@ -42,7 +42,7 @@ def start_image_check(simulation_id_str=None):
         time.sleep(1)
 
     # 전송 성공시 '성공' 표시로 전환
-    mago3d.conclude_simulation(drone_project_id)
+    print(mago3d.conclude_simulation(drone_project_id))
 
     # 전송시간 출력
     print('Average Time: %f, Std: %s' % (np.mean(res_time_list), np.std(res_time_list)))
