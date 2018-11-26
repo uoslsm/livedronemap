@@ -55,7 +55,8 @@ def project():
 def ldm_upload(project_id_str):
     project_folder = os.path.join(app.config['UPLOAD_FOLDER'], project_id_str)
     if request.method == 'POST':
-        # 클라이언트로부터 이미지와 EO 파일을 전송받는다. 전송된 파일의 무결성을 확인하고 EO 파일에 대해 시스템 칼리브레이션을 수행한다.
+        # 클라이언트로부터 이미지와 EO 파일을 전송받는다
+        # 전송된 파일의 무결성을 확인하고 EO 파일에 대해 시스템 칼리브레이션을 수행한다.
         fname_dict = {'img': None, 'eo': None, 'calibrated_eo': None}
         for key in ['img', 'eo']:
             if key not in request.files:  # 전송받은 파일의 상태 확인: 이미지나 EO 중 하나의 키가 빠진 경우
@@ -67,14 +68,16 @@ def ldm_upload(project_id_str):
                 filename = secure_filename(file.filename)
                 fname_dict[key] = filename
                 file.save(os.path.join(project_folder, filename))  # 클라이언트로부터 전송받은 파일을 저장한다.
-                if key == 'eo': # 전송받은 파일이 EO인 경우, 그리고 칼리브레이션 모드가 켜진 경우 시스템 칼리브레이션을 수행한다.
+                if key == 'eo':  # 전송받은 파일이 EO인 경우, 그리고 칼리브레이션 모드가 켜진 경우 시스템 칼리브레이션을 수행한다.
                     if app.config['CALIBRATION']:
                         from image_processing.apx_file_reader import read_eo_file
                         calibrated_eo = read_eo_file(os.path.join(project_folder, fname_dict['eo']))
                         fname_dict['calibrated_eo'] = fname_dict['eo'].split('.')[0] + '_calibrated.txt'
                         with open(os.path.join(project_folder, fname_dict['calibrated_eo']), 'w') as f:
                             f.write('%f\t%f\t%f\t%f\t%f\t%f' % (calibrated_eo['lat'], calibrated_eo['lon'], calibrated_eo['alt'], calibrated_eo['omega'], calibrated_eo['phi'], calibrated_eo['kappa']))
-        if fname_dict != {'img': None, 'eo': None, 'calibrated_eo': None}:  # 전송받은 이미지와 조정한 EO를 기하보정한다.
+
+        # 전송받은 이미지와 조정한 EO를 기하보정한다
+        if fname_dict != {'img': None, 'eo': None, 'calibrated_eo': None}:
             if app.config['CALIBRATION']:
                 eo_key = 'calibrated_eo'
             else:
@@ -87,19 +90,22 @@ def ldm_upload(project_id_str):
                     focal_length=app.config['LDM_CONFIG']['focal_length'],
                     gsd=app.config['LDM_CONFIG']['gsd'],
                     ground_height=app.config['LDM_CONFIG']['ground_height'])
+
             # 기하보정한 결과(PNG)를 GeoTiff로 변환한다
             fname_dict['img_GTiff'] = fname_dict['img'].split('.')[0] + '.tif'
             os.system('gdal_translate -of GTiff project\\%s\\rectified\\%s project\\%s\\rectified\\%s'
                       % (project_id_str, fname_dict['img'].split('.')[0] + '.png',
                          project_id_str, fname_dict['img_GTiff']))
+
             # 기하보정한 이미지로부터 객체를 탐지한다
             # 적조탐지
-            red_tide_result = detect_red_tide('json_template/ldm_mago3d_detected_objects.json',
-                            'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img_GTiff']))
-            # red_tide_result = []
+            #red_tide_result = detect_red_tide('json_template/ldm_mago3d_detected_objects.json',
+            #                'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img_GTiff']))
+            red_tide_result = []
+
             # 메타데이터 생성
             with open(os.path.join('project\\%s\\rectified\\%s' %
-                                   (project_id_str, fname_dict[eo_key].split('.')[0] + '.wkt'))) as f:
+                                   (project_id_str, fname_dict[eo_key].split('_')[0] + '.wkt'))) as f:
                 bounding_box_image = f.readline()
                 img_metadata = create_img_metadata(img_metadata_json_template_fname='json_template/ldm2mago3d_img_metadata.json',
                                                    img_fname=fname_dict['img_GTiff'],
@@ -107,8 +113,10 @@ def ldm_upload(project_id_str):
                                                    detected_objects=red_tide_result,
                                                    bounding_box_image=bounding_box_image,
                                                    drone_project_id=int(project_id_str))
+
             with open('project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img'].split('.')[0] + '.json'), 'w') as f:
                 f.write(json.dumps(img_metadata))
+
             # Mago3D에 전송
             mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], user_id=app.config['MAGO3D_CONFIG']['user_id'],
                             api_key=app.config['MAGO3D_CONFIG']['api_key'])
