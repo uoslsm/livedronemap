@@ -43,7 +43,7 @@ def read_eo_file(fname):
 # UCON data format #
 ####################
 def parse_sensor_data_UCON(data):
-    temp_list = data.split(' ')
+    temp_list = data.split('\t')
     parsing_list_temp = [temp_list[0], temp_list[1], temp_list[2], temp_list[3], temp_list[4], temp_list[5]]
     parsing_list = [float(i) for i in parsing_list_temp]
     return parsing_list

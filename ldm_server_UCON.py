@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 
 import config_server
 from image_processing.orthophoto import rectify, rectify_UCON
-from image_processing.img_metadata_generation import create_img_metadata
+from image_processing.img_metadata_generation import create_img_metadata_UCON as create_img_metadata
 from clients.webodm import WebODM
 from clients.mago3d import Mago3D
 from object_detection.red_tide import detect_red_tide
@@ -206,4 +206,4 @@ def webodm_start_processing(project_id_str):
 
 
 if __name__ == '__main__':
-    app.run(threaded=True)
+    app.run(threaded=True, host='192.168.0.75')
