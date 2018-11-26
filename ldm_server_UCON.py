@@ -7,7 +7,7 @@ from flask import Flask, request
 from werkzeug.utils import secure_filename
 
 import config_server
-from image_processing.orthophoto import rectify
+from image_processing.orthophoto import rectify, rectify_UCON
 from image_processing.img_metadata_generation import create_img_metadata
 from clients.webodm import WebODM
 from clients.mago3d import Mago3D
@@ -16,6 +16,9 @@ from drone_image_check import start_image_check
 
 # 플라스크 초기화
 app = Flask(__name__)
+####################
+# UCON data format #
+####################
 app.config.from_object(config_server.UCONConfig)
 
 # 멀티쓰레드 초기화
@@ -70,8 +73,12 @@ def ldm_upload(project_id_str):
                 file.save(os.path.join(project_folder, filename))  # 클라이언트로부터 전송받은 파일을 저장한다.
                 if key == 'eo':  # 전송받은 파일이 EO인 경우, 그리고 칼리브레이션 모드가 켜진 경우 시스템 칼리브레이션을 수행한다.
                     if app.config['CALIBRATION']:
-                        from image_processing.apx_file_reader import read_eo_file
-                        calibrated_eo = read_eo_file(os.path.join(project_folder, fname_dict['eo']))
+                        ####################
+                        # UCON data format #
+                        ####################
+                        from image_processing.apx_file_reader import read_eo_file_UCON
+                        calibrated_eo = read_eo_file_UCON(os.path.join(project_folder, fname_dict['eo']))
+
                         fname_dict['calibrated_eo'] = fname_dict['eo'].split('.')[0] + '_calibrated.txt'
                         with open(os.path.join(project_folder, fname_dict['calibrated_eo']), 'w') as f:
                             f.write('%f\t%f\t%f\t%f\t%f\t%f' % (calibrated_eo['lat'], calibrated_eo['lon'], calibrated_eo['alt'], calibrated_eo['omega'], calibrated_eo['phi'], calibrated_eo['kappa']))
@@ -82,7 +89,10 @@ def ldm_upload(project_id_str):
                 eo_key = 'calibrated_eo'
             else:
                 eo_key = 'eo'
-            rectify(input_dir=os.path.join(os.getcwd(), 'project\\%s\\' % project_id_str),
+            ####################
+            # UCON data format #
+            ####################
+            rectify_UCON(input_dir=os.path.join(os.getcwd(), 'project\\%s\\' % project_id_str),
                     output_dir=os.path.join(os.getcwd(), 'project\\%s\\rectified\\' % project_id_str),
                     eo_fname=fname_dict[eo_key],
                     img_fname=fname_dict['img'],
@@ -104,6 +114,9 @@ def ldm_upload(project_id_str):
             red_tide_result = []
 
             # 메타데이터 생성
+            ####################
+            # UCON data format #
+            ####################
             with open(os.path.join('project\\%s\\rectified\\%s' %
                                    (project_id_str, fname_dict[eo_key].split('_')[0] + '.wkt'))) as f:
                 bounding_box_image = f.readline()
