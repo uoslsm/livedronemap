@@ -40,3 +40,12 @@ class DJIMavicConfig(BaseConfig):
         'gsd': 0.25,
         'ground_height': 0
     }
+
+class UCONConfig(BaseConfig):
+    CALIBRATION = True
+    LDM_CONFIG = {
+        "pixel_size": 0.00000425,  # 23.2 mm / 5456 px / 1000 -> m/px
+        'focal_length': 0.02,  # m
+        'gsd': 0.25,  # m
+        'ground_height': 0  # m
+    }
