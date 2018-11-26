@@ -5,7 +5,11 @@ import math
 
 def calibrate(roll, pitch, yaw):
     R_rpy = A2R_RPY(roll*math.pi/180, pitch*math.pi/180, yaw*math.pi/180)
-    R_CB = np.array([[1., 0., 0.], [0., 1, 0], [0., 0, 1]], dtype=float)
+    #R_CB = np.array([[1., 0., 0.], [0., 1, 0], [0., 0, 1]], dtype=float)
+    # For 181109 UCON sample
+    R_CB = np.array([[0.999316766081877, 0.000560870510045398, -0.0369551951954102],
+                     [-0.000444095694963612, 0.999994883152282, 0.00316803539571153],
+                     [0.0369567829589322, -0.00314945924338254, 0.9993119018103411]], dtype=float)
     R_opk = R_rpy.dot(R_CB)
 
     OPK_list = R2A_OPK(R_opk)
