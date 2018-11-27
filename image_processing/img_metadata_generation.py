@@ -13,7 +13,6 @@ def create_img_metadata(img_metadata_json_template_fname, img_fname, bounding_bo
     if data_type == '0':
         with open(eo_path, 'r') as f:
             eo = f.readline().split('\t')
-            print(eo)
             img_metadata['drone']['latitude'] = float(eo[2])
             img_metadata['drone']['longitude'] = float(eo[1])
             img_metadata['drone']['altitude'] = float(eo[3])
@@ -37,7 +36,6 @@ def create_img_metadata_UCON(img_metadata_json_template_fname, img_fname, boundi
     if data_type == '0':
         with open(eo_path, 'r') as f:
             eo = f.readline().split('\t')
-            print(eo)
             img_metadata['drone']['latitude'] = float(eo[0])
             img_metadata['drone']['longitude'] = float(eo[1])
             img_metadata['drone']['altitude'] = float(eo[2])

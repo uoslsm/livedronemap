@@ -1,6 +1,7 @@
 import requests
 import json
 import nanotime
+import arrow
 
 
 class Mago3D:
@@ -46,7 +47,7 @@ class Mago3D:
             "shooting_lower_left_latitude": 37.4,
             "shooting_lower_left_longitude": 132.26,
             "location": "POINT (128.382757714281 34.7651373676212)",
-            "shooting_date": "20180929203800",  # TODO: 현재시각
+            "shooting_date": arrow.utcnow().shift(hours=9).format('YYYYMMDDHHmmss'),
             "description": "시뮬레이션 프로젝트"
         }
         res = requests.post(url=self.url + 'drone-projects/', headers=self.headers, data=data)
