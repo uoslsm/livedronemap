@@ -56,6 +56,7 @@ def project():
 # 라이브 드론맵: 이미지 업로드, 기하보정 및 가시화
 @app.route('/ldm_upload/<project_id_str>', methods=['POST'])
 def ldm_upload(project_id_str):
+    img_get_time = time.time()
     project_folder = os.path.join(app.config['UPLOAD_FOLDER'], project_id_str)
     if request.method == 'POST':
         # 클라이언트로부터 이미지와 EO 파일을 전송받는다
@@ -83,6 +84,7 @@ def ldm_upload(project_id_str):
                         with open(os.path.join(project_folder, fname_dict['calibrated_eo']), 'w') as f:
                             f.write('%f\t%f\t%f\t%f\t%f\t%f' % (calibrated_eo['lat'], calibrated_eo['lon'], calibrated_eo['alt'], calibrated_eo['omega'], calibrated_eo['phi'], calibrated_eo['kappa']))
 
+        geo_end_time = time.time()
         # 전송받은 이미지와 조정한 EO를 기하보정한다
         if fname_dict != {'img': None, 'eo': None, 'calibrated_eo': None}:
             if app.config['CALIBRATION']:
@@ -113,12 +115,14 @@ def ldm_upload(project_id_str):
             #                'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img_GTiff']))
             red_tide_result = []
 
+            rect_end_time = time.time()
+
             # 메타데이터 생성
             ####################
             # UCON data format #
             ####################
             with open(os.path.join('project\\%s\\rectified\\%s' %
-                                   (project_id_str, fname_dict[eo_key].split('_')[0] + '.wkt'))) as f:
+                                   (project_id_str, fname_dict['eo'].split('.')[0] + '.wkt'))) as f:
                 bounding_box_image = f.readline()
                 img_metadata = create_img_metadata(img_metadata_json_template_fname='json_template/ldm2mago3d_img_metadata.json',
                                                    img_fname=fname_dict['img_GTiff'],
@@ -130,6 +134,8 @@ def ldm_upload(project_id_str):
             with open('project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img'].split('.')[0] + '.json'), 'w') as f:
                 f.write(json.dumps(img_metadata))
 
+            metadata_gen_end_time = time.time()
+
             # Mago3D에 전송
             mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], user_id=app.config['MAGO3D_CONFIG']['user_id'],
                             api_key=app.config['MAGO3D_CONFIG']['api_key'])
@@ -138,6 +144,12 @@ def ldm_upload(project_id_str):
             print(res)
             print(res.text)
 
+            data_trans_start_time = time.time()
+
+            f = open("log.txt", 'a')
+            cur_time = "%f\t%f\t%f\t%f\t%f\n" % (img_get_time, geo_end_time, rect_end_time, metadata_gen_end_time, data_trans_start_time)
+            f.write(cur_time)
+#
         return 'LDM'
 
 
@@ -203,6 +215,7 @@ def webodm_start_processing(project_id_str):
     webodm.create_task(project_folder)
 
     return 'ODM'
+
 
 
 if __name__ == '__main__':
