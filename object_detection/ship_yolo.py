@@ -38,6 +38,7 @@ def detect_ship(json_template_fname, input_png_path):
         detected_objects['detected_date'] = arrow.utcnow().format('YYYYMMDDHHmmss')
         detected_objects['insert_date'] = arrow.utcnow().format('YYYYMMDDHHmmss')
         detected_objects_list.append(detected_objects)
+    return detected_objects_list
 
 
 if __name__ == '__main__':
