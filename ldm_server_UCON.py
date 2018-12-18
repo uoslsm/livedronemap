@@ -19,7 +19,7 @@ app = Flask(__name__)
 ####################
 # UCON data format #
 ####################
-app.config.from_object(config_server.UCONConfig)
+app.config.from_object(config_server.DJIMavicConfig)
 
 # 멀티쓰레드 초기화
 executor = ThreadPoolExecutor(2)
@@ -79,10 +79,16 @@ def ldm_upload(project_id_str):
                         ####################
                         from image_processing.apx_file_reader import read_eo_file_UCON
                         calibrated_eo = read_eo_file_UCON(os.path.join(project_folder, fname_dict['eo']))
-
                         fname_dict['calibrated_eo'] = fname_dict['eo'].split('.')[0] + '_calibrated.txt'
                         with open(os.path.join(project_folder, fname_dict['calibrated_eo']), 'w') as f:
                             f.write('%f\t%f\t%f\t%f\t%f\t%f' % (calibrated_eo['lat'], calibrated_eo['lon'], calibrated_eo['alt'], calibrated_eo['omega'], calibrated_eo['phi'], calibrated_eo['kappa']))
+                    elif app.config['CALIBRATION'] == False:
+                        fname_dict['precalibrated_eo'] = fname_dict['eo'].split('.')[0] + '_precalibrated.txt'
+                        with open(os.path.join(project_folder, fname_dict['precalibrated_eo']), 'w') as precal_eo_f:
+                            with open(os.path.join(project_folder, fname_dict['eo']), 'r') as eo_f:
+                                eo_f.readline()
+                                data = eo_f.readline()
+                                precal_eo_f.write(data)
 
         geo_end_time = time.time()
         # 전송받은 이미지와 조정한 EO를 기하보정한다
@@ -90,7 +96,7 @@ def ldm_upload(project_id_str):
             if app.config['CALIBRATION']:
                 eo_key = 'calibrated_eo'
             else:
-                eo_key = 'eo'
+                eo_key = 'precalibrated_eo'
             ####################
             # UCON data format #
             ####################
@@ -147,7 +153,7 @@ def ldm_upload(project_id_str):
             data_trans_start_time = time.time()
 
             f = open("log.txt", 'a')
-            cur_time = "%f\t%f\t%f\t%f\t%f\n" % (img_get_time, geo_end_time, rect_end_time, metadata_gen_end_time, data_trans_start_time)
+            cur_time = "%s\t%f\t%f\t%f\t%f\t%f\n" % (fname_dict['img_GTiff'],img_get_time, geo_end_time, rect_end_time, metadata_gen_end_time, data_trans_start_time)
             f.write(cur_time)
 #
         return 'LDM'
