@@ -122,7 +122,7 @@ def ldm_upload(project_id_str):
                            'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img_GTiff']))
             # 선박탐지
             ship_result = detect_ship('json_template/ldm_mago3d_detected_objects.json',
-                           'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img']))
+                           'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img'].split('.')[0] + '.png'))
             detection_result = red_tide_result + ship_result
             rect_end_time = time.time()
 
