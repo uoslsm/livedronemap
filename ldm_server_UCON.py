@@ -12,6 +12,7 @@ from image_processing.img_metadata_generation import create_img_metadata_UCON as
 from clients.webodm import WebODM
 from clients.mago3d import Mago3D
 from object_detection.red_tide import detect_red_tide
+from object_detection.ship_yolo import detect_ship
 from drone_image_check import start_image_check
 
 # 플라스크 초기화
@@ -19,7 +20,7 @@ app = Flask(__name__)
 ####################
 # UCON data format #
 ####################
-app.config.from_object(config_server.UCONConfig)
+app.config.from_object(config_server.DJIMavicConfig)
 
 # 멀티쓰레드 초기화
 executor = ThreadPoolExecutor(2)
@@ -111,10 +112,12 @@ def ldm_upload(project_id_str):
 
             # 기하보정한 이미지로부터 객체를 탐지한다
             # 적조탐지
-            #red_tide_result = detect_red_tide('json_template/ldm_mago3d_detected_objects.json',
-            #                'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img_GTiff']))
-            red_tide_result = []
-
+            red_tide_result = detect_red_tide('json_template/ldm_mago3d_detected_objects.json',
+                           'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img_GTiff']))
+            # 선박탐지
+            ship_result = detect_ship('json_template/ldm_mago3d_detected_objects.json',
+                           'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img']))
+            detection_result = red_tide_result + ship_result
             rect_end_time = time.time()
 
             # 메타데이터 생성
@@ -127,7 +130,7 @@ def ldm_upload(project_id_str):
                 img_metadata = create_img_metadata(img_metadata_json_template_fname='json_template/ldm2mago3d_img_metadata.json',
                                                    img_fname=fname_dict['img_GTiff'],
                                                    eo_path='project\\%s\\%s' % (project_id_str, fname_dict[eo_key]),
-                                                   detected_objects=red_tide_result,
+                                                   detected_objects=detection_result,
                                                    bounding_box_image=bounding_box_image,
                                                    drone_project_id=int(project_id_str))
 
