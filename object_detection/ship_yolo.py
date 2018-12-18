@@ -17,6 +17,7 @@ def detect_ship(json_template_fname, input_png_path):
             }
         }
     geom_boxes = start_ship_detection(input_png_path, geom_info)
+    detected_objects_list = []
     for number, geom_box in enumerate(geom_boxes):
         geometry = 'POINT (%f %f)' % (geom_box['center']['x'], geom_box['center']['y'])
         bounding_box_geometry = 'POLYGON ((%f %f, %f %f, %f %f, %f %f))' % (
@@ -29,7 +30,6 @@ def detect_ship(json_template_fname, input_png_path):
             geom_box['bounding_box']['coord_4']['x'],
             geom_box['bounding_box']['coord_4']['y']
         )
-        detected_objects_list = []
         detected_objects = json.load(open(json_template_fname, 'r'))
         detected_objects['number'] = number
         detected_objects['object_type'] = '0'  # 0: 선박탐지, 1: 기름유출
