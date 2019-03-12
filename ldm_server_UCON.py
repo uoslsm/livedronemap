@@ -20,6 +20,7 @@ app = Flask(__name__)
 ####################
 # UCON data format #
 ####################
+
 app.config.from_object(config_server.DJIMavicConfig)
 
 # 멀티쓰레드 초기화
