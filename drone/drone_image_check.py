@@ -4,7 +4,7 @@ import glob
 from tqdm import tqdm
 import numpy as np
 
-from config_drone import BaseConfig as Config
+from drone.config_drone import BaseConfig as Config
 from clients.ldm_client import Livedronemap
 from clients.mago3d import Mago3D
 

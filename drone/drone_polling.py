@@ -1,5 +1,5 @@
 import requests
-from config_drone import BaseConfig as Config
+from drone.config_drone import BaseConfig as Config
 
 while True:
     print('Polling connection...')
@@ -14,5 +14,5 @@ while True:
     else:
         simulation_id_str = result.text
         print('[START_SIM] simulation_id: %s' % result.text)
-        from drone_image_check import start_image_check
+        from drone.drone_image_check import start_image_check
         start_image_check(simulation_id_str=simulation_id_str)

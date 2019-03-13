@@ -1,4 +1,4 @@
-from image_processing.system_calibration import calibrate
+from server.image_processing.system_calibration import calibrate
 
 
 # parsing data from input file

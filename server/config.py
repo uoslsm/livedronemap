@@ -13,8 +13,8 @@ class BaseConfig(object):
         'polling_time': 0.5,
         'timeout': 10
     }
-    WEBODM_CONFIG = json.load(open('config_webodm.json', 'r'))
-    MAGO3D_CONFIG = json.load(open('config_mago3d.json', 'r'))
+    WEBODM_CONFIG = json.load(open('server/config_webodm.json', 'r'))
+    MAGO3D_CONFIG = json.load(open('server/config_mago3d.json', 'r'))
     PATH = {
         'img_metadata_path': 'json_templates/ldm2mago3d_img_metadata.json',
         'gdal_path': 'C:\\OSGeo4W64\\bin\\gdal_translate.exe'
@@ -22,6 +22,8 @@ class BaseConfig(object):
     SIMULATION_ID = None
 
 
+# 각 드론별 설정값
+# 반드시 BaseConfig 클래스를 상속할 것
 class KrihsConfig(BaseConfig):
     CALIBRATION = True
     LDM_CONFIG = {
