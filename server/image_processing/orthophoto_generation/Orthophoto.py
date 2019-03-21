@@ -3,10 +3,10 @@ import numpy as np
 import cv2
 import time
 from osgeo import ogr
-from ExifData import getExif, restoreOrientation
-from EoData import convertCoordinateSystem, Rot3D
-from Boundary import boundary
-from BackprojectionResample import projectedCoord, backProjection, resample, createGeoTiff
+from server.image_processing.orthophoto_generation.ExifData import getExif, restoreOrientation
+from server.image_processing.orthophoto_generation.EoData import convertCoordinateSystem, Rot3D
+from server.image_processing.orthophoto_generation.Boundary import boundary
+from server.image_processing.orthophoto_generation.BackprojectionResample import projectedCoord, backProjection, resample, createGeoTiff
 
 
 def export_bbox_to_wkt(bbox):
