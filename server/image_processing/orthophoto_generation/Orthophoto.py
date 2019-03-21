@@ -25,7 +25,8 @@ def rectify(project_path, img_fname, img_rectified_fname, eo, ground_height, sen
     """
     In order to generate individual ortho-image, this function rectifies a given drone image on a reference plane.
     :param img_fname:
-    :param eo_fname:
+    :param img_rectified_fname:
+    :param eo:
     :param project_path:
     :param ground_height: Ground height in m
     :param sensor_width: Width of the sensor in mm
@@ -99,4 +100,4 @@ def rectify(project_path, img_fname, img_rectified_fname, eo, ground_height, sen
     print("--- %s seconds ---" % (time.time() - start_time + read_time))
 
     bbox_wkt = export_bbox_to_wkt(bbox)
-    return img_rectified_fname, bbox_wkt
+    return bbox_wkt

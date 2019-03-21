@@ -1,5 +1,6 @@
 from abc import *
 import math
+import numpy as np
 
 
 class BaseDrone(metaclass=ABCMeta):
@@ -12,7 +13,7 @@ class BaseDrone(metaclass=ABCMeta):
     }
 
     @abstractmethod
-    def preprocess_eo_file(self, fname, pre_calibrated):
+    def preprocess_eo_file(self, eo_path):
         """
         This abstract function parses a given EO file and returns parsed_eo (see below).
         It SHOULD BE implemented for each drone classes.
@@ -29,33 +30,30 @@ class BaseDrone(metaclass=ABCMeta):
 
 
 class DJIMavic(BaseDrone):
-    def __init__(self, precalibrated=False):
+    def __init__(self, pre_calibrated=False):
         self.ipod_params = {
             "sensor_width": 0.00000156425,
             'focal_length': 0.0047,
             'gsd': 0.25,
             'ground_height': 0
         }
-        self.precalibrated = precalibrated
+        self.pre_calibrated = pre_calibrated
 
-    def preprocess_eo_file(self, fname):
-        f = open(fname, 'r')
-        if self.pre_calibrated:
-            pass
-        else:
-            data = f.readline()
-            data = data.split('\t')
+    def preprocess_eo_file(self, eo_path):
+        eo_line = np.genfromtxt(
+            eo_path,
+            delimiter='\t',
+            dtype={
+                'names': ('Image', 'Latitude', 'Longitude', 'Altitude', 'Omega', 'Phi', 'Kappa'),
+                'formats': ('U15', '<f8', '<f8', '<f8', '<f8', '<f8', '<f8')
+            }
+        )
 
-            eo_line = np.genfromtxt(path, delimiter='\t',
-                                    dtype={
-                                        'names': ('Image', 'Latitude', 'Longitude', 'Height', 'Omega', 'Phi', 'Kappa'),
-                                        'formats': ('U15', '<f8', '<f8', '<f8', '<f8', '<f8', '<f8')})
+        eo_line['Omega'] = eo_line['Omega'] * math.pi / 180
+        eo_line['Phi'] = eo_line['Phi'] * math.pi / 180
+        eo_line['Kappa'] = eo_line['Kappa'] * math.pi / 180
 
-            eo_line['Omega'] = eo_line['Omega'] * math.pi / 180
-            eo_line['Phi'] = eo_line['Phi'] * math.pi / 180
-            eo_line['Kappa'] = eo_line['Kappa'] * math.pi / 180
+        parsed_eo = [float(eo_line['Latitude']), float(eo_line['Longitude']), float(eo_line['Altitude']),
+                     float(eo_line['Omega']), float(eo_line['Phi']), float(eo_line['Kappa'])]
 
-            parsed_eo = [float(eo_line['Latitude']), float(eo_line['Longitude']), float(eo_line['Height']),
-                         float(eo_line['Omega']), float(eo_line['Phi']), float(eo_line['Kappa'])]
-
-            return parsed_eo
+        return parsed_eo

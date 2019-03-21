@@ -7,12 +7,9 @@ from flask import Flask, request
 from werkzeug.utils import secure_filename
 
 from server import config_flask
-from server.image_processing.orthophoto import rectify_UCON
-from server.image_processing.img_metadata_generation import create_img_metadata_UCON as create_img_metadata
+from server.image_processing.img_metadata_generation import create_img_metadata
 from clients.webodm import WebODM
 from clients.mago3d import Mago3D
-from server.object_detection.red_tide import detect_red_tide
-from server.object_detection.ship_yolo import detect_ship
 from drone.drone_image_check import start_image_check
 
 from server.image_processing.orthophoto_generation.Orthophoto import rectify
@@ -25,11 +22,15 @@ app.config.from_object(config_flask.BaseConfig)
 executor = ThreadPoolExecutor(2)
 
 # Initialize Mago3D client
-mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], user_id=app.config['MAGO3D_CONFIG']['user_id'],
-                        api_key=app.config['MAGO3D_CONFIG']['api_key'])
+mago3d = Mago3D(
+    url=app.config['MAGO3D_CONFIG']['url'],
+    user_id=app.config['MAGO3D_CONFIG']['user_id'],
+    api_key=app.config['MAGO3D_CONFIG']['api_key']
+)
 
 from server.my_drones import DJIMavic
-my_drone = DJIMavic(precalibrated=True)
+my_drone = DJIMavic(pre_calibrated=True)
+
 
 def allowed_file(fname):
     return '.' in fname and fname.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -76,8 +77,7 @@ def ldm_upload(project_id_str):
         fname_dict = {
             'img': None,
             'img_rectified': None,
-            'eo': None,
-            'eo_preprocessed': None
+            'eo': None
         }
 
         # Check integrity of uploaded files
@@ -94,18 +94,20 @@ def ldm_upload(project_id_str):
                 return 'Failed to save the uploaded files'
 
         # IPOD chain 1: System calibration
-        parsed_eo = my_drone.preprocess_eo_file(fname_dict['eo'])
-        if my_drone.precalibrated:
+        parsed_eo = my_drone.preprocess_eo_file(os.path.join(project_path, fname_dict['eo']))
+        print(parsed_eo)
+        if my_drone.pre_calibrated:
             pass
         else:
+            # TODO: Implement system calibration procedure
             pass
-        # TODO: Save preprocessed eo. fname_dict['preprocessed_eo']
 
         # IPOD chain 2: Individual ortho-image generation
         fname_dict['img_rectified'] = fname_dict['img'].split('.')[0] + '.tif'
-        rectify(
-            project_path=project,
+        bbox_wkt = rectify(
+            project_path=project_path,
             img_fname=fname_dict['img'],
+            img_rectified_fname=fname_dict['img_rectified'],
             eo=parsed_eo,
             ground_height=my_drone.ipod_params['ground_height'],
             sensor_width=my_drone.ipod_params['sensor_width']
@@ -113,30 +115,26 @@ def ldm_upload(project_id_str):
 
         # IPOD chain 3: Object detection
         # TODO: Implement object detection functions
-        detection_result = []
+        detected_objects = []
 
         # Generate metadata for Mago3D
-        # TODO: Need to calculate Image bounding box
-        with open(os.path.join('project\\%s\\rectified\\%s' %
-                               (project_id_str, fname_dict['eo'].split('.')[0] + '.wkt'))) as f:
-            bounding_box_image = f.readline()
-            img_metadata = create_img_metadata(
-                img_metadata_json_template_fname='json_template/ldm2mago3d_img_metadata.json',
-                img_fname=fname_dict['img_GTiff'],
-                eo_path='project\\%s\\%s' % (project_id_str, fname_dict['preprocessed_eo']),
-                detected_objects=detection_result,
-                bounding_box_image=bounding_box_image,
-                drone_project_id=int(project_id_str)
-            )
-
-        with open('project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img'].split('.')[0] + '.json'), 'w') as f:
-            f.write(json.dumps(img_metadata))
+        img_metadata = create_img_metadata(
+            drone_project_id=int(project_id_str),
+            data_type='0',
+            file_name=fname_dict['img_rectified'],
+            detected_objects=detected_objects,
+            drone_id='0',
+            drone_name='my_drone',
+            parsed_eo=parsed_eo
+        )
 
         # Mago3D에 전송
-        mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], user_id=app.config['MAGO3D_CONFIG']['user_id'],
-                        api_key=app.config['MAGO3D_CONFIG']['api_key'])
-        res = mago3d.upload(img_fname='project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img_GTiff']),
-                            img_metadata=img_metadata)
+        res = mago3d.upload(
+            img_rectified_path=os.path.join(project_path, fname_dict['img_rectified']),
+            img_metadata=img_metadata
+        )
+
+        print(res.text)
 
         return 'Image upload and IPOD chain complete'
 
@@ -210,4 +208,4 @@ def webodm_start_processing(project_id_str):
 
 
 if __name__ == '__main__':
-    app.run(threaded=True, host='192.168.0.75')
+    app.run(threaded=True)

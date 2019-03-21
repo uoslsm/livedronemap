@@ -3,12 +3,13 @@ import time
 import glob
 from tqdm import tqdm
 import numpy as np
+import arrow
 
-from drone.config_drone import BaseConfig as Config
+from drone.config import BaseConfig as Config
 from clients.ldm_client import Livedronemap
 from clients.mago3d import Mago3D
 
-MAGO3D_CONFIG = json.load(open('config_mago3d.json', 'r'))
+MAGO3D_CONFIG = json.load(open('drone/config_mago3d.json', 'r'))
 
 
 def start_image_check(simulation_id_str=None):
@@ -16,7 +17,7 @@ def start_image_check(simulation_id_str=None):
 
     # 현재 프로젝트 설정
     ldm = Livedronemap(Config.LDM_ADDRESS)
-    drone_project_id = ldm.create_project('[샌드박스] 처리시간 체크', project_type='1')
+    drone_project_id = ldm.create_project('Simulation (%s)' % arrow.utcnow().format('YYYYMMDDHHmmss'), project_type='0')  # TODO: project_type SHOULD BE '1'
     ldm.set_current_project(drone_project_id)
 
     # Mago3D 클라이언트 설정
@@ -37,6 +38,7 @@ def start_image_check(simulation_id_str=None):
         result = ldm.ldm_upload(img_fname, eo_fname)
         if result.status_code != 200:
             print('Image: %s, EO: %s, Result: %s' % (img_fname, eo_fname, result.status_code))
+            print(result)
             mago3d.set_simulation_id(simulation_id_str, drone_project_id, status='1')
             return 0
 
@@ -47,7 +49,7 @@ def start_image_check(simulation_id_str=None):
         end_time = time.time()
         res_time = end_time - start_time
         res_time_list.append(res_time)
-        time.sleep(1)
+        time.sleep(Config.UPLOAD_INTERVAL)
 
     # 전송 성공시 '성공' 표시로 전환
     print(mago3d.conclude_simulation(drone_project_id))
