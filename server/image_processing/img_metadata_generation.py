@@ -33,6 +33,7 @@ def create_img_metadata_UCON(img_metadata_json_template_fname, img_fname, boundi
     img_metadata['file_name'] = img_fname
     # img_metadata['bounding_box_image'] = bounding_box_image
     img_metadata['detected_objects'] = detected_objects
+    # TODO: do not parse eo data from .txt file.
     if data_type == '0':
         with open(eo_path, 'r') as f:
             eo = f.readline().split('\t')

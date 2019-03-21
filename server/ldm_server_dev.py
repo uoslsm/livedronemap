@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from flask import Flask, request
 from werkzeug.utils import secure_filename
 
-from server import config as config_server
+from server import config_flask
 from server.image_processing.orthophoto import rectify_UCON
 from server.image_processing.img_metadata_generation import create_img_metadata_UCON as create_img_metadata
 from clients.webodm import WebODM
@@ -15,9 +15,11 @@ from server.object_detection.red_tide import detect_red_tide
 from server.object_detection.ship_yolo import detect_ship
 from drone.drone_image_check import start_image_check
 
+from server.image_processing.orthophoto_generation.Orthophoto import rectify
+
 # Initialize flask
 app = Flask(__name__)
-app.config.from_object(config_server.DJIMavicConfig)
+app.config.from_object(config_flask.BaseConfig)
 
 # Initialize multi-thread
 executor = ThreadPoolExecutor(2)
@@ -26,6 +28,8 @@ executor = ThreadPoolExecutor(2)
 mago3d = Mago3D(url=app.config['MAGO3D_CONFIG']['url'], user_id=app.config['MAGO3D_CONFIG']['user_id'],
                         api_key=app.config['MAGO3D_CONFIG']['api_key'])
 
+from server.my_drones import DJIMavic
+my_drone = DJIMavic(precalibrated=True)
 
 def allowed_file(fname):
     return '.' in fname and fname.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -66,14 +70,15 @@ def ldm_upload(project_id_str):
     :param project_id_str: project_id which Mago3D assigned for each projects
     :return:
     """
-
     if request.method == 'POST':
         # Initialize variables
-        project_folder = os.path.join(app.config['UPLOAD_FOLDER'], project_id_str)
-        fname_dict = {'img': None, 'eo': None, 'calibrated_eo': None}
-
-        # 클라이언트로부터 이미지와 EO 파일을 전송받는다
-        # 전송된 파일의 무결성을 확인하고 EO 파일에 대해 시스템 칼리브레이션을 수행한다.
+        project_path = os.path.join(app.config['UPLOAD_FOLDER'], project_id_str)
+        fname_dict = {
+            'img': None,
+            'img_rectified': None,
+            'eo': None,
+            'eo_preprocessed': None
+        }
 
         # Check integrity of uploaded files
         for key in ['img', 'eo']:
@@ -84,66 +89,45 @@ def ldm_upload(project_id_str):
                 return 'No selected file'
             if file and allowed_file(file.filename):  # If the keys and corresponding values are OK
                 fname_dict[key] = secure_filename(file.filename)
-                file.save(os.path.join(project_folder, fname_dict[key]))  # 클라이언트로부터 전송받은 파일을 저장한다.
+                file.save(os.path.join(project_path, fname_dict[key]))  # 클라이언트로부터 전송받은 파일을 저장한다.
             else:
                 return 'Failed to save the uploaded files'
 
         # IPOD chain 1: System calibration
-        if app.config['CALIBRATION']:
-            from server.image_processing.apx_file_reader import read_eo_file_UCON
-            calibrated_eo = read_eo_file_UCON(os.path.join(project_folder, fname_dict['eo']))
-            fname_dict['calibrated_eo'] = fname_dict['eo'].split('.')[0] + '_calibrated.txt'
-            with open(os.path.join(project_folder, fname_dict['calibrated_eo']), 'w') as f:
-                f.write('%f\t%f\t%f\t%f\t%f\t%f' % (calibrated_eo['lat'], calibrated_eo['lon'], calibrated_eo['alt'], calibrated_eo['omega'], calibrated_eo['phi'], calibrated_eo['kappa']))
+        parsed_eo = my_drone.preprocess_eo_file(fname_dict['eo'])
+        if my_drone.precalibrated:
+            pass
         else:
-            fname_dict['precalibrated_eo'] = fname_dict['eo'].split('.')[0] + '_precalibrated.txt'
-            with open(os.path.join(project_folder, fname_dict['precalibrated_eo']), 'w') as precal_eo_f:
-                with open(os.path.join(project_folder, fname_dict['eo']), 'r') as eo_f:
-                    eo_f.readline()
-                    data = eo_f.readline()
-                    precal_eo_f.write(data)
-
-        # TODO: system calibration 실패할 경우 예외처리할 것 (return 'system calibration failed')
+            pass
+        # TODO: Save preprocessed eo. fname_dict['preprocessed_eo']
 
         # IPOD chain 2: Individual ortho-image generation
-        if app.config['CALIBRATION']:
-            eo_key = 'calibrated_eo'
-        else:
-            eo_key = 'precalibrated_eo'
-        rectify_UCON(input_dir=os.path.join(os.getcwd(), 'project\\%s\\' % project_id_str),
-                output_dir=os.path.join(os.getcwd(), 'project\\%s\\rectified\\' % project_id_str),
-                eo_fname=fname_dict[eo_key],
-                img_fname=fname_dict['img'],
-                pixel_size=app.config['LDM_CONFIG']['pixel_size'],
-                focal_length=app.config['LDM_CONFIG']['focal_length'],
-                gsd=app.config['LDM_CONFIG']['gsd'],
-                ground_height=app.config['LDM_CONFIG']['ground_height'])
-
-        # 기하보정한 결과(PNG)를 GeoTiff로 변환한다
-        fname_dict['img_GTiff'] = fname_dict['img'].split('.')[0] + '.tif'
-        os.system('gdal_translate -of GTiff project\\%s\\rectified\\%s project\\%s\\rectified\\%s'
-                  % (project_id_str, fname_dict['img'].split('.')[0] + '.png',
-                     project_id_str, fname_dict['img_GTiff']))
+        fname_dict['img_rectified'] = fname_dict['img'].split('.')[0] + '.tif'
+        rectify(
+            project_path=project,
+            img_fname=fname_dict['img'],
+            eo=parsed_eo,
+            ground_height=my_drone.ipod_params['ground_height'],
+            sensor_width=my_drone.ipod_params['sensor_width']
+        )
 
         # IPOD chain 3: Object detection
-        # 적조탐지
-        red_tide_result = detect_red_tide('json_template/ldm_mago3d_detected_objects.json',
-                       'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img_GTiff']))
-        # 선박탐지
-        ship_result = detect_ship('json_template/ldm_mago3d_detected_objects.json',
-                       'project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img'].split('.')[0] + '.png'))
-        detection_result = red_tide_result + ship_result
+        # TODO: Implement object detection functions
+        detection_result = []
 
         # Generate metadata for Mago3D
+        # TODO: Need to calculate Image bounding box
         with open(os.path.join('project\\%s\\rectified\\%s' %
                                (project_id_str, fname_dict['eo'].split('.')[0] + '.wkt'))) as f:
             bounding_box_image = f.readline()
-            img_metadata = create_img_metadata(img_metadata_json_template_fname='json_template/ldm2mago3d_img_metadata.json',
-                                               img_fname=fname_dict['img_GTiff'],
-                                               eo_path='project\\%s\\%s' % (project_id_str, fname_dict[eo_key]),
-                                               detected_objects=detection_result,
-                                               bounding_box_image=bounding_box_image,
-                                               drone_project_id=int(project_id_str))
+            img_metadata = create_img_metadata(
+                img_metadata_json_template_fname='json_template/ldm2mago3d_img_metadata.json',
+                img_fname=fname_dict['img_GTiff'],
+                eo_path='project\\%s\\%s' % (project_id_str, fname_dict['preprocessed_eo']),
+                detected_objects=detection_result,
+                bounding_box_image=bounding_box_image,
+                drone_project_id=int(project_id_str)
+            )
 
         with open('project\\%s\\rectified\\%s' % (project_id_str, fname_dict['img'].split('.')[0] + '.json'), 'w') as f:
             f.write(json.dumps(img_metadata))
@@ -157,9 +141,13 @@ def ldm_upload(project_id_str):
         return 'Image upload and IPOD chain complete'
 
 
-# 시스템 점검: 드론과의 양방향 통신을 위한 폴링 대기
 @app.route('/check/drone_polling')
 def check_drone_polling():
+    """
+    Maintains polling connection with drone system. Whenever Mago3D asks to check the drone system (START_HEALTH_CHECK),
+    this polling connection will be disconnected and be connected again immediately.
+    :return:
+    """
     app.config['DRONE']['asked_health_check'] = False
     app.config['DRONE']['asked_sim'] = False
     while True:
@@ -219,7 +207,6 @@ def webodm_start_processing(project_id_str):
     webodm.create_task(project_folder)
 
     return 'ODM'
-
 
 
 if __name__ == '__main__':
