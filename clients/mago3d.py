@@ -38,25 +38,25 @@ class Mago3D:
             "drone_project_name": drone_project_name,
             "drone_project_type": drone_project_type,
             "shooting_area": shooting_area,
-            "shooting_upper_left_latitude": 37.1,
-            "shooting_upper_left_longitude": 132.23,
-            "shooting_upper_right_latitude": 37.2,
-            "shooting_upper_right_longitude": 132.24,
-            "shooting_lower_right_latitude": 37.3,
-            "shooting_lower_right_longitude": 132.25,
-            "shooting_lower_left_latitude": 37.4,
-            "shooting_lower_left_longitude": 132.26,
-            "location": "POINT (128.382757714281 34.7651373676212)",
+            "shooting_upper_left_latitude": 37.1,  # Dummy data
+            "shooting_upper_left_longitude": 132.23,  # Dummy data
+            "shooting_upper_right_latitude": 37.2,  # Dummy data
+            "shooting_upper_right_longitude": 132.24,  # Dummy data
+            "shooting_lower_right_latitude": 37.3,  # Dummy data
+            "shooting_lower_right_longitude": 132.25,  # Dummy data
+            "shooting_lower_left_latitude": 37.4,  # Dummy data
+            "shooting_lower_left_longitude": 132.26,  # Dummy data
+            "location": "POINT (128.382757714281 34.7651373676212)",  # Dummy data
             "shooting_date": arrow.utcnow().shift(hours=9).format('YYYYMMDDHHmmss'),
-            "description": "시뮬레이션 프로젝트"
+            "description": "시뮬레이션 프로젝트"  # Dummy data
         }
         res = requests.post(url=self.url + 'drone-projects/', headers=self.headers, data=data)
         return res
 
-    def upload(self, img_fname, img_metadata):
+    def upload(self, img_rectified_path, img_metadata):
         data = {'file_meta': json.dumps(img_metadata)}
         files = {
-            'file': open(img_fname, 'rb')
+            'file': open(img_rectified_path, 'rb')
         }
         res = requests.post(url=self.url + 'transfer-data/', headers=self.headers, files=files, data=data)
         return res
