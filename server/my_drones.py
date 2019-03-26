@@ -32,10 +32,10 @@ class BaseDrone(metaclass=ABCMeta):
 class DJIMavic(BaseDrone):
     def __init__(self, pre_calibrated=False):
         self.ipod_params = {
-            "sensor_width": 0.00000156425,
+            "sensor_width": 6.3,
             'focal_length': 0.0047,
             'gsd': 0.25,
-            'ground_height': 0
+            'ground_height': 0.65
         }
         self.pre_calibrated = pre_calibrated
 

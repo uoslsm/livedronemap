@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from copy import copy
 from osgeo.osr import SpatialReference, CoordinateTransformation
 
 def readEO(path):
@@ -30,9 +31,10 @@ def convertCoordinateSystem(eo):
 
     # Check the transformation for a point close to the centre of the projected grid
     xy = latlon2tm.TransformPoint(float(eo[0]), float(eo[1]))
-    eo[0:2] = xy[0:2]
+    converted_eo = copy(eo)
+    converted_eo[0:2] = xy[0:2]
 
-    return eo
+    return converted_eo
 
 def Rot3D(eo):
     om = eo[3]

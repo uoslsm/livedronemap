@@ -3,6 +3,8 @@ import numpy as np
 import cv2
 import time
 from osgeo import ogr
+from osgeo import gdal
+from osgeo import osr
 from server.image_processing.orthophoto_generation.ExifData import getExif, restoreOrientation
 from server.image_processing.orthophoto_generation.EoData import convertCoordinateSystem, Rot3D
 from server.image_processing.orthophoto_generation.Boundary import boundary
@@ -59,14 +61,15 @@ def rectify(project_path, img_fname, img_rectified_fname, eo, ground_height, sen
 
     print('Read EOP - ' + img_fname)
     print('Latitude | Longitude | Height | Omega | Phi | Kappa')
-    eo = convertCoordinateSystem(eo)
-    R = Rot3D(eo)
+    converted_eo = convertCoordinateSystem(eo)
+    R = Rot3D(converted_eo)
 
     # 2. Extract a projected boundary of the image
-    bbox = boundary(restored_image, eo, R, ground_height, pixel_size, focal_length)
+    bbox = boundary(restored_image, converted_eo, R, ground_height, pixel_size, focal_length)
     print("--- %s seconds ---" % (time.time() - start_time))
 
-    gsd = (pixel_size * (eo[2] - ground_height)) / focal_length  # unit: m/px
+    gsd = (pixel_size * (converted_eo[2] - ground_height)) / focal_length  # unit: m/px
+    # gsd = 0.5
 
     # Boundary size
     boundary_cols = int((bbox[1, 0] - bbox[0, 0]) / gsd)
@@ -74,7 +77,7 @@ def rectify(project_path, img_fname, img_rectified_fname, eo, ground_height, sen
 
     print('projectedCoord')
     start_time = time.time()
-    proj_coords = projectedCoord(bbox, boundary_rows, boundary_cols, gsd, eo, ground_height)
+    proj_coords = projectedCoord(bbox, boundary_rows, boundary_cols, gsd, converted_eo, ground_height)
     print("--- %s seconds ---" % (time.time() - start_time))
 
     # Image size
@@ -92,8 +95,18 @@ def rectify(project_path, img_fname, img_rectified_fname, eo, ground_height, sen
 
     print('Save the image in GeoTiff')
     start_time = time.time()
-    dst = os.path.join(project_path, img_rectified_fname)
+    img_rectified_fname_kctm = img_rectified_fname.split('.')[0]+'_kctm.tif'
+    dst = os.path.join(project_path, img_rectified_fname_kctm)
     createGeoTiff(b, g, r, a, bbox, gsd, boundary_rows, boundary_cols, dst)
+
+    gdal.Warp(
+        os.path.join(project_path, img_rectified_fname),
+        gdal.Open(os.path.join(project_path, img_rectified_fname_kctm)),
+        format='GTiff',
+        srcSRS='EPSG:5186',
+        dstSRS='EPSG:4326'
+    )
+
     print("--- %s seconds ---" % (time.time() - start_time))
 
     print('*** Processing time per each image')

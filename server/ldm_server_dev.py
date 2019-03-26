@@ -95,7 +95,6 @@ def ldm_upload(project_id_str):
 
         # IPOD chain 1: System calibration
         parsed_eo = my_drone.preprocess_eo_file(os.path.join(project_path, fname_dict['eo']))
-        print(parsed_eo)
         if my_drone.pre_calibrated:
             pass
         else:
@@ -127,6 +126,8 @@ def ldm_upload(project_id_str):
             drone_name='my_drone',
             parsed_eo=parsed_eo
         )
+
+        print(img_metadata)
 
         # Mago3D에 전송
         res = mago3d.upload(
