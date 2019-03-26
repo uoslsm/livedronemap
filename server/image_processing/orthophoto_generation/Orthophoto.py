@@ -99,6 +99,7 @@ def rectify(project_path, img_fname, img_rectified_fname, eo, ground_height, sen
     dst = os.path.join(project_path, img_rectified_fname_kctm)
     createGeoTiff(b, g, r, a, bbox, gsd, boundary_rows, boundary_cols, dst)
 
+    # GDAL warp to reproject from EPSG:5186 to EPSG:4326
     gdal.Warp(
         os.path.join(project_path, img_rectified_fname),
         gdal.Open(os.path.join(project_path, img_rectified_fname_kctm)),
