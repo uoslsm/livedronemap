@@ -2,7 +2,7 @@ import time
 import os
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from config_drone import BaseConfig as Config
+from drone.config_drone import BaseConfig as Config
 from clients.ldm_client import Livedronemap
 
 image_list = []
