@@ -176,6 +176,7 @@ def check_drone():
 
 @app.route('/check/beacon')
 def check_beacon():
+    # UN Test
     return 'OK'
 
 
