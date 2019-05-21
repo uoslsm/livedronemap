@@ -44,7 +44,7 @@ class DJIMavic(BaseDrone):
             eo_path,
             delimiter='\t',
             dtype={
-                'names': ('Image', 'Latitude', 'Longitude', 'Altitude', 'Omega', 'Phi', 'Kappa'),
+                'names': ('Image', 'Longitude', 'Latitude', 'Altitude', 'Omega', 'Phi', 'Kappa'),
                 'formats': ('U15', '<f8', '<f8', '<f8', '<f8', '<f8', '<f8')
             }
         )
@@ -53,7 +53,7 @@ class DJIMavic(BaseDrone):
         eo_line['Phi'] = eo_line['Phi'] * math.pi / 180
         eo_line['Kappa'] = eo_line['Kappa'] * math.pi / 180
 
-        parsed_eo = [float(eo_line['Latitude']), float(eo_line['Longitude']), float(eo_line['Altitude']),
+        parsed_eo = [float(eo_line['Longitude']), float(eo_line['Latitude']), float(eo_line['Altitude']),
                      float(eo_line['Omega']), float(eo_line['Phi']), float(eo_line['Kappa'])]
 
         return parsed_eo
