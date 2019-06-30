@@ -62,6 +62,7 @@ def rectify(project_path, img_fname, img_rectified_fname, eo, ground_height, sen
     print('Read EOP - ' + img_fname)
     print('Latitude | Longitude | Height | Omega | Phi | Kappa')
     converted_eo = convertCoordinateSystem(eo)
+    print(converted_eo)
     R = Rot3D(converted_eo)
 
     # 2. Extract a projected boundary of the image
@@ -74,6 +75,9 @@ def rectify(project_path, img_fname, img_rectified_fname, eo, ground_height, sen
     # Boundary size
     boundary_cols = int((bbox[1, 0] - bbox[0, 0]) / gsd)
     boundary_rows = int((bbox[3, 0] - bbox[2, 0]) / gsd)
+    print(boundary_cols)
+    print(boundary_rows)
+    print(gsd)
 
     print('projectedCoord')
     start_time = time.time()

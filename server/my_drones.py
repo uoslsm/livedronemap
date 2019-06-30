@@ -57,3 +57,25 @@ class DJIMavic(BaseDrone):
                      float(eo_line['Omega']), float(eo_line['Phi']), float(eo_line['Kappa'])]
 
         return parsed_eo
+
+
+class TiLabETRI(BaseDrone):
+    def __init__(self, pre_calibrated=False):
+        self.ipod_params = {
+            "sensor_width": 23.5,
+            "focal_length": 0.0016,
+            "gsd": 0.25,
+            "ground_height": 33.35
+        }
+        self.pre_calibrated = pre_calibrated
+
+    def preprocess_eo_file(self, eo_path):
+        with open(eo_path, 'r') as f:
+            data = f.readline().split(' ')
+            lat = data[1].split('=')[1]
+            lon = data[2].split('=')[1]
+            alt = data[3].split('=')[1]
+            kappa = (float(data[6].split('=')[1]) + 90.0) * math.pi / 180
+            parsed_eo = [float(lon), float(lat), float(alt), 0.0, 0.0, float(kappa)]
+
+            return parsed_eo
