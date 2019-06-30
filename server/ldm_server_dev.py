@@ -28,8 +28,8 @@ mago3d = Mago3D(
     api_key=app.config['MAGO3D_CONFIG']['api_key']
 )
 
-from server.my_drones import DJIMavic
-my_drone = DJIMavic(pre_calibrated=True)
+from server.my_drones import TiLabETRI
+my_drone = TiLabETRI(pre_calibrated=True)
 
 
 def allowed_file(fname):
@@ -176,6 +176,7 @@ def check_drone():
 
 @app.route('/check/beacon')
 def check_beacon():
+    # UN Test
     return 'OK'
 
 
@@ -209,4 +210,4 @@ def webodm_start_processing(project_id_str):
 
 
 if __name__ == '__main__':
-    app.run(threaded=True)
+    app.run(threaded=True, host='0.0.0.0', port=5000)
