@@ -34,8 +34,12 @@ class DJIMavic(BaseDrone):
         self.ipod_params = {
             "sensor_width": 6.3,
             'focal_length': 0.0047,
-            'gsd': 0.25,
-            'ground_height': 0.65
+            'gsd': 'auto',
+            'ground_height': 27.0,
+            "R_CB": np.array(
+                [[0.997391604272809, -0.0193033671589004, -0.0695511879297631],
+                 [0.0115400822765142, 0.993826984996126, -0.110339251377565],
+                 [0.0712517664845147, 0.109248816514592, 0.991457453380122]], dtype=float)
         }
         self.pre_calibrated = pre_calibrated
 
@@ -44,17 +48,17 @@ class DJIMavic(BaseDrone):
             eo_path,
             delimiter='\t',
             dtype={
-                'names': ('Image', 'Longitude', 'Latitude', 'Altitude', 'Omega', 'Phi', 'Kappa'),
+                'names': ('Image', 'Longitude', 'Latitude', 'Altitude', 'Yaw', 'Pitch', 'Roll'),
                 'formats': ('U15', '<f8', '<f8', '<f8', '<f8', '<f8', '<f8')
             }
         )
 
-        eo_line['Omega'] = eo_line['Omega'] * math.pi / 180
-        eo_line['Phi'] = eo_line['Phi'] * math.pi / 180
-        eo_line['Kappa'] = eo_line['Kappa'] * math.pi / 180
+        eo_line['Roll'] = eo_line['Roll'] * math.pi / 180
+        eo_line['Pitch'] = eo_line['Pitch'] * math.pi / 180
+        eo_line['Yaw'] = (eo_line['Yaw']) * math.pi / 180
 
         parsed_eo = [float(eo_line['Longitude']), float(eo_line['Latitude']), float(eo_line['Altitude']),
-                     float(eo_line['Omega']), float(eo_line['Phi']), float(eo_line['Kappa'])]
+                     float(eo_line['Roll']), float(eo_line['Pitch']), float(eo_line['Yaw'])]
 
         return parsed_eo
 
@@ -65,7 +69,7 @@ class TiLabETRI(BaseDrone):
             "sensor_width": 23.5,
             "focal_length": 0.0016,
             "gsd": 0.25,
-            "ground_height": 33.35
+            "ground_height": 27.0,
         }
         self.pre_calibrated = pre_calibrated
 
