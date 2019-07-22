@@ -81,7 +81,5 @@ def Rot3D(eo):
     Rz[2, 2] = 1
 
     # R = Rz * Ry * Rx
-    Rzy = np.dot(Rz, Ry)
-    R = np.dot(Rzy, Rx)
-
+    R = np.linalg.multi_dot([Rz, Ry, Rx])
     return R
