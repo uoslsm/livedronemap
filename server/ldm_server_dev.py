@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 
 from server import config_flask
 from server.image_processing.img_metadata_generation import create_img_metadata
+from server.image_processing.system_calibration import calibrate
 from clients.webodm import WebODM
 from clients.mago3d import Mago3D
 from drone.drone_image_check import start_image_check
@@ -28,8 +29,8 @@ mago3d = Mago3D(
     api_key=app.config['MAGO3D_CONFIG']['api_key']
 )
 
-from server.my_drones import TiLabETRI
-my_drone = TiLabETRI(pre_calibrated=True)
+from server.my_drones import DJIMavic as My_drone
+my_drone = My_drone(pre_calibrated=False)
 
 
 def allowed_file(fname):
@@ -95,11 +96,11 @@ def ldm_upload(project_id_str):
 
         # IPOD chain 1: System calibration
         parsed_eo = my_drone.preprocess_eo_file(os.path.join(project_path, fname_dict['eo']))
-        if my_drone.pre_calibrated:
-            pass
-        else:
-            # TODO: Implement system calibration procedure
-            pass
+        if not my_drone.pre_calibrated:
+            omega, phi, kappa = calibrate(parsed_eo[3], parsed_eo[4], parsed_eo[5], my_drone.ipod_params['R_CB'])
+            parsed_eo[3] = omega
+            parsed_eo[4] = phi
+            parsed_eo[5] = kappa
 
         # IPOD chain 2: Individual ortho-image generation
         fname_dict['img_rectified'] = fname_dict['img'].split('.')[0] + '.tif'
@@ -109,7 +110,8 @@ def ldm_upload(project_id_str):
             img_rectified_fname=fname_dict['img_rectified'],
             eo=parsed_eo,
             ground_height=my_drone.ipod_params['ground_height'],
-            sensor_width=my_drone.ipod_params['sensor_width']
+            sensor_width=my_drone.ipod_params['sensor_width'],
+            gsd=my_drone.ipod_params['gsd']
         )
 
         # IPOD chain 3: Object detection
